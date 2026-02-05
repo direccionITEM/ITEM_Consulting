@@ -80,9 +80,11 @@ export default function Layout({ children, isAuthenticated, onLogin, onLogout }:
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
-              <div className="font-bold text-xl text-item-blue">
-                ITEM<span className="font-light text-gray-700">Consulting</span>
-              </div>
+              <img 
+                src="/images/logo.png" 
+                alt="Mi Empresa" 
+                className="h-16 w-auto"
+              />
             </Link>
 
             {/* Desktop Navigation */}
