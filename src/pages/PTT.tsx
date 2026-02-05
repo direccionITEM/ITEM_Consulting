@@ -135,7 +135,7 @@ export default function PTT() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
             <AlertCircle size={16} />
-            Obligación legal
+            Obligación legal por Ley 9/2025
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
             Plan de Transporte al Trabajo
