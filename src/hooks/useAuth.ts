@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { User, Project, NewsItem } from '@/types';
 
-// Hash SHA-256 de la contraseña "drxXI9yCnIFo3lly."
-const PASSWORD_HASH = '8f3a2b1c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8';
+const PASSWORD_HASH = '58a801a5b23aaf975c11699dc0b09202bb25e5d1ef122380f63d4ae047b06033';
 
 // Función para generar hash SHA-256
 async function sha256(message: string): Promise<string> {
