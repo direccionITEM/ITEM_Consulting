@@ -83,7 +83,7 @@ export default function Layout({ children, isAuthenticated, onLogin, onLogout }:
               <img 
                 src="/images/logo.png" 
                 alt="Mi Empresa" 
-                className="h-10 w-auto"
+                className="h-16 w-auto"
               />
             </Link>
 
