@@ -212,7 +212,7 @@ export default function Layout({ children, isAuthenticated, onLogin, onLogout }:
             <div>
               <h4 className="text-lg font-semibold mb-4">Enlaces rápidos</h4>
               <ul className="space-y-2">
-                {navItems.slice(0, 4).map((link) => (
+                {navItems.slice(0, 5).map((link) => (
                   <li key={link.href}>
                     <Link
                       to={link.href}
@@ -229,7 +229,7 @@ export default function Layout({ children, isAuthenticated, onLogin, onLogout }:
             <div>
               <h4 className="text-lg font-semibold mb-4">Más información</h4>
               <ul className="space-y-2">
-                {navItems.slice(4).map((link) => (
+                {navItems.slice(5).map((link) => (
                   <li key={link.href}>
                     <Link
                       to={link.href}
