@@ -6,5 +6,7 @@
       "destination": "/index.html"
     }
   ],
-  "outputDirectory": "dist"
+  "buildCommand": "bash build.sh",
+  "outputDirectory": "dist",
+  "framework": null
 }
