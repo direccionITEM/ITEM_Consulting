@@ -13,14 +13,14 @@ import NoticiaDetalle from '@/pages/NoticiaDetalle';
 import Contacto from '@/pages/Contacto';
 
 function App() {
-  const { user, login, logout } = useAuth();
+  const { user, login, loginGoogle, logout } = useAuth();
   const { projects, isLoading: projectsLoading, addProject, deleteProject } = useProjects();
   const { news, isLoading: newsLoading, addNews, deleteNews } = useNews();
 
   const isAuthenticated = user?.isAuthenticated ?? false;
 
   return (
-    <Layout isAuthenticated={isAuthenticated} onLogin={login} onLogout={logout}>
+    <Layout isAuthenticated={isAuthenticated} onLogin={login} onLoginGoogle={loginGoogle} onLogout={logout}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/empresa" element={<Empresa />} />
@@ -35,6 +35,7 @@ function App() {
               isLoading={projectsLoading}
               isAuthenticated={isAuthenticated}
               onLogin={login}
+              onLoginGoogle={loginGoogle}
               onAddProject={addProject}
               onDeleteProject={deleteProject}
             />
@@ -52,6 +53,7 @@ function App() {
               isLoading={newsLoading}
               isAuthenticated={isAuthenticated}
               onLogin={login}
+              onLoginGoogle={loginGoogle}
               onAddNews={addNews}
               onDeleteNews={deleteNews}
             />

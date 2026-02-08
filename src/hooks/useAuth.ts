@@ -1,20 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { User, Project, NewsItem } from '@/types';
+import { loginWithEmail, loginWithGoogle, logoutUser, onAuthChange } from '@/lib/firebase';
+import type { FirebaseUser } from '@/lib/firebase';
 
-const PASSWORD_HASH = '58a801a5b23aaf975c11699dc0b09202bb25e5d1ef122380f63d4ae047b06033';
-
-// Función para generar hash SHA-256
-async function sha256(message: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(message);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-// Claves para localStorage
+// Claves para localStorage (solo para proyectos y noticias)
 const STORAGE_KEYS = {
-  USER: 'item_user',
   PROJECTS: 'item_projects',
   NEWS: 'item_news',
 };
@@ -1804,7 +1794,7 @@ El informe completo del estudio está disponible para descarga gratuita en la we
   {
     id: '20',
     title: 'Reconocimiento como empresa innovadora',
-    excerpt: 'ITEM Consulting obtiene el selo de empresa innovadora concedido por el Ministerio de Ciencia e Innovación.',
+    excerpt: 'ITEM Consulting obtiene el sello de empresa innovadora concedido por el Ministerio de Ciencia e Innovación.',
     content: `ITEM Consulting ha obtenido el sello de empresa innovadora concedido por el Ministerio de Ciencia e Innovación, que reconoce la capacidad de innovación de la empresa.
 
 ### Requisitos para la obtención
@@ -2285,7 +2275,7 @@ Las inscripciones están abiertas en la web de ITEM Consulting, con plazas limit
 ### Objetivos de la alianza
 
 La alianza persigue:
-- Ofrecer soluciones completas de movilidad sostenible
+- Ofrecer soluciones completos de movilidad sostenible
 - Integrar servicios de consultoría y tecnología
 - Facilitar la implantación de medidas de movilidad compartida
 - Desarrollar proyectos conjuntos innovadores
@@ -2389,49 +2379,87 @@ ITEM Consulting ofrece asesoramiento gratuito a empresas interesadas en acceder 
   },
 ];
 
+// ====================
+// HOOKS DE AUTENTICACIÓN CON FIREBASE
+// ====================
+
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        localStorage.removeItem(STORAGE_KEYS.USER);
+    // Escuchar cambios en el estado de autenticación de Firebase
+    const unsubscribe = onAuthChange((firebaseUser: FirebaseUser | null) => {
+      if (firebaseUser) {
+        // Usuario autenticado en Firebase
+        const newUser: User = {
+          username: firebaseUser.email || 'admin',
+          isAuthenticated: true,
+        };
+        setUser(newUser);
+      } else {
+        // No hay usuario autenticado
+        setUser(null);
       }
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    });
+
+    // Limpiar el listener al desmontar
+    return () => unsubscribe();
   }, []);
 
-  const login = useCallback(async (username: string, password: string): Promise<boolean> => {
-    if (username !== 'ITEM') {
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
+    try {
+      await loginWithEmail(email, password);
+      return true;
+    } catch (error) {
+      console.error('Error de login:', error);
       return false;
     }
+  }, []);
 
+  // Lista de correos autorizados para login con Google
+  const ALLOWED_GOOGLE_EMAILS = [
+    'rayengea@gmail.com',
+    'direccion@itemconsulting.es'
+  ];
+
+  const loginGoogle = useCallback(async (): Promise<boolean> => {
     try {
-      const hashedPassword = await sha256(password);
-      if (hashedPassword !== PASSWORD_HASH) {
+      const result = await loginWithGoogle();
+      const userEmail = result.user.email;
+      
+      // Verificar si el correo está en la lista de autorizados
+      if (userEmail && !ALLOWED_GOOGLE_EMAILS.includes(userEmail)) {
+        // Si no está autorizado, cerrar sesión inmediatamente
+        await logoutUser();
+        console.error('Correo no autorizado:', userEmail);
+        alert('Este correo no tiene permiso para acceder. Contacta al administrador.');
         return false;
       }
-
-      const newUser: User = { username, isAuthenticated: true };
-      setUser(newUser);
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(newUser));
+      
       return true;
-    } catch {
+    } catch (error) {
+      console.error('Error de login con Google:', error);
       return false;
     }
   }, []);
 
-  const logout = useCallback(() => {
-    setUser(null);
-    localStorage.removeItem(STORAGE_KEYS.USER);
+  const logout = useCallback(async () => {
+    try {
+      await logoutUser();
+      setUser(null);
+    } catch (error) {
+      console.error('Error de logout:', error);
+    }
   }, []);
 
-  return { user, isLoading, login, logout };
+  return { user, isLoading, login, loginGoogle, logout };
 }
+
+// ====================
+// HOOKS DE PROYECTOS Y NOTICIAS (sin cambios)
+// ====================
 
 export function useProjects() {
   const [projects, setProjects] = useState<Project[]>([]);
