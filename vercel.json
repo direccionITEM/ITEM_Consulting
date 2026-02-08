@@ -6,7 +6,7 @@
       "destination": "/index.html"
     }
   ],
-  "buildCommand": "bash build.sh",
+  "buildCommand": null,
   "outputDirectory": "dist",
-  "framework": null
+  "framework": "vite"
 }
