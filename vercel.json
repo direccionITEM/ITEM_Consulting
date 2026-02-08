@@ -6,8 +6,5 @@
       "destination": "/index.html"
     }
   ],
-  "buildCommand": "bash build.sh",
-  "installCommand": "npm install",
-  "framework": "vite",
   "outputDirectory": "dist"
 }
