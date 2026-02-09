@@ -5,16 +5,35 @@ export default function Hero() {
   const [showVideo, setShowVideo] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  
+  // Determinar la ruta base del video según el entorno
+  const getVideoPath = () => {
+    // En desarrollo local, usar ruta relativa
+    if (import.meta.env.DEV) {
+      return '/videos/video1.mp4';
+    }
+    // En producción, ruta absoluta
+    return '/videos/video1.mp4';
+  };
 
   useEffect(() => {
-    // Intentar reproducir el video cuando el componente se monte
     const video = videoRef.current;
-    if (video) {
-      video.play().catch(() => {
-        // Autoplay bloqueado, mostrar imagen
-        setVideoError(true);
-      });
-    }
+    if (!video) return;
+    
+    // Intentar cargar el video manualmente
+    video.src = getVideoPath();
+    video.load();
+    
+    const playVideo = async () => {
+      try {
+        await video.play();
+        console.log('Video reproduciendose');
+      } catch (err) {
+        console.log('Autoplay bloqueado, esperando interaccion');
+      }
+    };
+    
+    playVideo();
   }, []);
 
   const scrollToSection = (href: string) => {
@@ -26,59 +45,54 @@ export default function Hero() {
 
   return (
     <section id="inicio" className="relative min-h-screen flex flex-col">
-      {/* Hero Background - Parte superior con video */}
+      {/* Hero Background */}
       <div 
         className="relative flex-1 flex items-center"
         style={{ minHeight: '600px' }}
       >
-        {/* Contenedor del video/imagen de fondo */}
+        {/* Contenedor de fondo */}
         <div className="absolute inset-0 overflow-hidden">
           
-          {/* Video - solo renderizado cuando está listo */}
-          {!videoError && (
-            <video
-              ref={videoRef}
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="auto"
-              poster="/images/1.png"
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
-                showVideo ? 'opacity-100' : 'opacity-0'
-              }`}
-              onLoadedData={() => {
-                console.log('Video cargado correctamente');
-                setShowVideo(true);
-              }}
-              onCanPlay={() => {
-                setShowVideo(true);
-              }}
-              onError={(e) => {
-                console.error('Error cargando video:', e);
-                setVideoError(true);
-              }}
-            >
-              <source src="/videos/video1.mp4" type="video/mp4" />
-              Tu navegador no soporta videos HTML5.
-            </video>
-          )}
+          {/* Video */}
+          <video
+            ref={videoRef}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            className={`absolute inset-0 w-full h-full object-cover ${
+              showVideo ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{ transition: 'opacity 0.5s ease' }}
+            onLoadedData={() => {
+              console.log('Video cargado');
+              setShowVideo(true);
+            }}
+            onCanPlay={() => {
+              setShowVideo(true);
+            }}
+            onError={(e) => {
+              console.error('Error video:', e);
+              setVideoError(true);
+            }}
+          >
+            <source src={getVideoPath()} type="video/mp4" />
+          </video>
           
-          {/* Imagen de fallback - visible cuando el video no carga o está cargando */}
+          {/* Fallback - visible cuando video no carga */}
           {(!showVideo || videoError) && (
             <div 
               className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-              style={{ 
-                backgroundImage: `url('/images/1.png')`,
-              }}
+              style={{ backgroundImage: `url('/images/1.png')` }}
             />
           )}
           
-          {/* Overlay oscuro */}
+          {/* Overlay */}
           <div className="hero-overlay absolute inset-0" />
         </div>
 
-        {/* Contenido del Hero */}
+        {/* Contenido */}
         <div className="container-custom relative w-full py-32" style={{ zIndex: 10 }}>
           <div className="max-w-3xl animate-fade-in">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
@@ -110,7 +124,7 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Alert Banner - Ley 9/2025 */}
+      {/* Alert Banner */}
       <div className="bg-white relative z-20">
         <div className="container-custom py-8">
           <div className="alert-banner rounded-xl p-6">
@@ -132,8 +146,7 @@ export default function Hero() {
                 </p>
                 <p className="text-gray-600 text-sm">
                   El incumplimiento puede derivar en sanciones de 101 a 2.000 euros. 
-                  ITEM Consulting te ayuda a diseñar e implantar tu PTT cumpliendo con 
-                  toda la normativa.
+                  ITEM Consulting te ayuda a diseñar e implantar tu PTT.
                 </p>
               </div>
               <div className="flex-shrink-0">
@@ -160,8 +173,7 @@ export default function Hero() {
               Somos una consultora de ingeniería especializada en infraestructuras del transporte, 
               economía y movilidad. Con más de 10 años de experiencia, proporcionamos soluciones 
               integrales para el asesoramiento en planificación, gestión y análisis de sistemas 
-              de transporte, ayudando a ayuntamientos y organismos públicos a transformar sus 
-              ciudades hacia un modelo de movilidad más sostenible, eficiente y seguro.
+              de transporte.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
               <div className="bg-white rounded-xl p-6 shadow-sm">
@@ -169,21 +181,18 @@ export default function Hero() {
                   <span className="text-white text-2xl font-bold">10+</span>
                 </div>
                 <h3 className="font-semibold text-gray-900">Años de experiencia</h3>
-                <p className="text-gray-600 text-sm mt-2">En consultoría y asesoría técnica</p>
               </div>
               <div className="bg-white rounded-xl p-6 shadow-sm">
                 <div className="w-12 h-12 bg-item-blue rounded-lg flex items-center justify-center mx-auto mb-4">
                   <span className="text-white text-2xl font-bold">50+</span>
                 </div>
                 <h3 className="font-semibold text-gray-900">Proyectos realizados</h3>
-                <p className="text-gray-600 text-sm mt-2">PMUS, estudios de tráfico y consultorías</p>
               </div>
               <div className="bg-white rounded-xl p-6 shadow-sm">
                 <div className="w-12 h-12 bg-item-blue rounded-lg flex items-center justify-center mx-auto mb-4">
                   <span className="text-white text-2xl font-bold">15+</span>
                 </div>
                 <h3 className="font-semibold text-gray-900">Municipios</h3>
-                <p className="text-gray-600 text-sm mt-2">Han confiado en nosotros</p>
               </div>
             </div>
           </div>
