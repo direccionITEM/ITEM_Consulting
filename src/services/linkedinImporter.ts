@@ -147,20 +147,19 @@ export async function importFromLinkedIn(url: string): Promise<LinkedInPostData>
 
 /**
  * Procesa markdown y convierte a HTML limpio
+ * ESTRATEGIA: El contenido real del artículo está ANTES del muro de login
  */
 function processMarkdownToHtml(markdown: string, authorName: string): string {
   const lines = markdown.split('\n');
   const paragraphs: string[] = [];
   let currentPara: string[] = [];
-  let passedLoginWall = false;
-  let foundContent = false;
+  let inLoginSection = false;
   
   const flushPara = () => {
     if (currentPara.length > 0) {
       const text = currentPara.join(' ').trim();
-      if (text && text.length > 10) {
+      if (text && text.length > 10 && !isLoginFormText(text)) {
         paragraphs.push(convertLineToHtml(text));
-        foundContent = true;
       }
       currentPara = [];
     }
@@ -169,16 +168,24 @@ function processMarkdownToHtml(markdown: string, authorName: string): string {
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i].trim();
     
-    // Saltar líneas vacías
-    if (!line) {
-      flushPara();
+    // DETECTAR INICIO DEL LOGIN WALL - todo después de esto es basura
+    if (line.includes('Aceptar y unirse a LinkedIn') ||
+        line.includes('Inicia sesión para ver más contenido') ||
+        line.includes('Crea tu cuenta gratuita o inicia sesión') ||
+        line.includes('Email o teléfono') ||
+        line === 'Mostrar' ||
+        line.match(/^Contraseña\s*$/i)) {
+      inLoginSection = true;
+      flushPara(); // Guardar lo que teníamos antes del login
       continue;
     }
     
-    // Detectar que pasamos el muro de login
-    if (line.includes('Inicia sesión para ver más contenido') ||
-        line.includes('Crea tu cuenta gratuita')) {
-      passedLoginWall = true;
+    // Si estamos en la sección de login, ignorar todo
+    if (inLoginSection) continue;
+    
+    // Saltar líneas vacías
+    if (!line) {
+      flushPara();
       continue;
     }
     
@@ -197,16 +204,7 @@ function processMarkdownToHtml(markdown: string, authorName: string): string {
     }
     
     // Saltar ruido de LinkedIn UI
-    if (isLinkedInNoise(line)) {
-      // Pero si ya pasamos el login wall, algunas líneas pueden ser contenido real
-      if (!passedLoginWall) continue;
-    }
-    
-    // Detectar fin del artículo
-    if (line.includes('Más artículos de') || 
-        line.includes('Ver temas')) {
-      break;
-    }
+    if (isLinkedInNoise(line)) continue;
     
     // Saltar URLs solitarias
     if (line.match(/^https?:\/\//)) continue;
@@ -217,16 +215,31 @@ function processMarkdownToHtml(markdown: string, authorName: string): string {
   
   flushPara();
   
-  // Si no encontramos contenido sustancial, puede que el artículo requiera login
-  if (!foundContent || paragraphs.length < 2) {
-    console.warn('Poco contenido encontrado - el artículo puede requerir login');
-  }
-  
   return paragraphs.join('\n');
 }
 
 /**
- * Verifica si es ruido de UI de LinkedIn (antes del contenido real)
+ * Detecta si el texto es parte de un formulario de login
+ */
+function isLoginFormText(text: string): boolean {
+  const loginPatterns = [
+    'Email o teléfono',
+    'Contraseña',
+    'Mostrar',
+    '¿Has olvidado tu contraseña?',
+    'Iniciar sesión',
+    'Iniciar sesión con',
+    'Iniciar sesión con el email',
+    'Crea tu cuenta gratuita',
+    'Únete ahora',
+    '¿Estás empezando a usar LinkedIn?',
+  ];
+  
+  return loginPatterns.some(pattern => text.includes(pattern));
+}
+
+/**
+ * Verifica si es ruido de UI de LinkedIn
  */
 function isLinkedInNoise(line: string): boolean {
   const noise = [
@@ -237,14 +250,8 @@ function isLinkedInNoise(line: string): boolean {
     'Pasar al contenido principal',
     'Denunciar este artículo',
     'Unirse ahora',
-    '¿Estás empezando a usar LinkedIn?',
     'Únete ahora',
-    'Crea tu cuenta gratuita',
-    'Inicia sesión para ver',
-    '¿Has olvidado tu contraseña?',
-    'Iniciar sesión con el email',
-    'o',
-    'Mostrar',
+    '[Pasar al contenido principal]',
   ];
   
   return noise.some(n => line.includes(n));
