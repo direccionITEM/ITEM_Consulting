@@ -325,8 +325,8 @@ export async function importFromLinkedIn(url: string): Promise<LinkedInPostData>
     const excerpt = content.substring(0, 200).replace(/\s+/g, ' ').trim() + 
                     (content.length > 200 ? '...' : '');
     
-    // Obtener imagen Open Graph
-    const imageUrl = await fetchOpenGraphImage(url);
+    // Obtener imagen - pasar el texto raw de jina.ai para extraer imágenes
+    const imageUrl = await fetchOpenGraphImage(url, text);
     
     return {
       title,
@@ -347,14 +347,75 @@ export async function importFromLinkedIn(url: string): Promise<LinkedInPostData>
 }
 
 /**
+ * Extrae la URL de la imagen del contenido markdown de jina.ai
+ */
+function extractImageFromJinaContent(text: string): string | null {
+  // Buscar patrones de imagen markdown: ![alt](url) o ![Image N](url)
+  const imagePatterns = [
+    /!\[([^\]]*)\]\((https:\/\/[^\)]+)\)/,
+    /!\[Image \d+\]\((https:\/\/[^\)]+)\)/,
+    /!Image \d+:\s*(https:\/\/[^\s]+)/,
+  ];
+  
+  for (const pattern of imagePatterns) {
+    const match = text.match(pattern);
+    if (match && match[2]) {
+      const url = match[2];
+      // Verificar que sea URL de LinkedIn CDN
+      if (url.includes('licdn.com') || url.includes('linkedin.com')) {
+        return url;
+      }
+    }
+    // Para el tercer patrón, el grupo es diferente
+    if (match && match[1] && pattern.source.includes('!Image')) {
+      const url = match[1];
+      if (url.includes('licdn.com') || url.includes('linkedin.com')) {
+        return url;
+      }
+    }
+  }
+  
+  return null;
+}
+
+/**
  * Intenta obtener la imagen Open Graph de una URL
  * Usa múltiples proxies CORS como fallback
+ * También intenta extraer del contenido jina.ai directamente
  */
-async function fetchOpenGraphImage(url: string): Promise<string> {
+async function fetchOpenGraphImage(url: string, jinaContent?: string): Promise<string> {
+  // Primero intentar extraer del contenido de jina.ai (más confiable)
+  if (jinaContent) {
+    const jinaImage = extractImageFromJinaContent(jinaContent);
+    if (jinaImage) {
+      console.log('Imagen extraída de jina.ai:', jinaImage);
+      return jinaImage;
+    }
+  }
+  
+  // Intentar con jina.ai directamente para obtener el HTML
+  try {
+    const jinaHtmlUrl = `https://r.jina.ai/http://cc.bingj.com/cache.aspx?d=504-4280-4056&w=${encodeURIComponent(url)}`;
+    const jinaResponse = await fetch(`https://r.jina.ai/http://${url.replace(/^https?:\/\//, '')}`, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+    });
+    
+    if (jinaResponse.ok) {
+      const text = await jinaResponse.text();
+      const jinaImage = extractImageFromJinaContent(text);
+      if (jinaImage) {
+        console.log('Imagen extraída de jina.ai (2do intento):', jinaImage);
+        return jinaImage;
+      }
+    }
+  } catch (e) {
+    console.warn('Error obteniendo imagen de jina.ai:', e);
+  }
+  
+  // Fallback a proxies CORS
   const proxies = [
     (u: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
     (u: string) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-    (u: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
   ];
   
   for (const proxyFn of proxies) {
@@ -366,39 +427,45 @@ async function fetchOpenGraphImage(url: string): Promise<string> {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         },
-        signal: AbortSignal.timeout(10000) // 10 segundos timeout
+        signal: AbortSignal.timeout(10000)
       });
       
       if (!response.ok) continue;
       
       const html = await response.text();
       
-      // Buscar meta tag Open Graph image (varios formatos posibles)
+      // Buscar meta tags de imagen
       const ogImagePatterns = [
         /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["'][^>]*>/i,
         /<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["'][^>]*>/i,
         /<meta[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["'][^>]*>/i,
         /<meta[^>]*content=["']([^"']+)["'][^>]*name=["']twitter:image["'][^>]*>/i,
+        /<meta[^>]*property=["']og:image:secure_url["'][^>]*content=["']([^"']+)["'][^>]*>/i,
       ];
       
       for (const pattern of ogImagePatterns) {
         const match = html.match(pattern);
         if (match && match[1]) {
-          // Verificar que la URL parezca válida (LinkedIn CDN)
           const imageUrl = match[1];
-          if (imageUrl.includes('licdn.com') || imageUrl.includes('linkedin.com')) {
+          // Aceptar URLs de LinkedIn CDN o cualquier HTTPS
+          if (imageUrl.startsWith('https://') && (
+            imageUrl.includes('licdn.com') || 
+            imageUrl.includes('linkedin.com') ||
+            imageUrl.includes('media-exp')
+          )) {
+            console.log('Imagen extraída de Open Graph:', imageUrl);
             return imageUrl;
           }
         }
       }
       
     } catch (e) {
-      // Continuar con el siguiente proxy
+      console.warn('Error con proxy:', e);
       continue;
     }
   }
   
-  // Imagen por defecto si no se encuentra
+  console.warn('No se pudo extraer imagen, usando default');
   return '/images/5.png';
 }
 
