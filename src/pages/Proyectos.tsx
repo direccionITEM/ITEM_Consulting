@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, FolderOpen, Calendar, ArrowRight, Pencil } from 'lucide-react';
+import { Plus, Trash2, FolderOpen, ArrowRight, Pencil } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,7 +33,6 @@ export default function Proyectos({
     content: '',
     imageUrl: '',
     category: '',
-    date: new Date().toISOString().split('T')[0],
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -104,7 +103,6 @@ export default function Proyectos({
           content: editingProject.content,
           imageUrl: editingProject.imageUrl,
           category: editingProject.category,
-          date: editingProject.date,
         },
         selectedImage || undefined
       );
@@ -295,17 +293,6 @@ export default function Proyectos({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Fecha
-              </label>
-              <Input
-                type="date"
-                value={newProject.date}
-                onChange={(e) => setNewProject({ ...newProject, date: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Descripción corta
               </label>
               <Textarea
@@ -390,17 +377,6 @@ export default function Proyectos({
                   value={editingProject.category}
                   onChange={(e) => setEditingProject({ ...editingProject, category: e.target.value })}
                   placeholder="Ej: PMUS, Estudios de Tráfico, etc."
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Fecha
-                </label>
-                <Input
-                  type="date"
-                  value={editingProject.date}
-                  onChange={(e) => setEditingProject({ ...editingProject, date: e.target.value })}
                   required
                 />
               </div>
