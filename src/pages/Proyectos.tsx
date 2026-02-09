@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import RichTextEditor from '@/components/RichTextEditor';
 import type { Project } from '@/types';
 
 interface ProyectosProps {
@@ -50,11 +51,6 @@ export default function Proyectos({
       // Validar campos requeridos
       if (!newProject.title.trim()) {
         setSubmitError('El título es obligatorio');
-        setIsSubmitting(false);
-        return;
-      }
-      if (!newProject.description.trim()) {
-        setSubmitError('La descripción es obligatoria');
         setIsSubmitting(false);
         return;
       }
@@ -230,9 +226,11 @@ export default function Proyectos({
                   <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
                     {project.title}
                   </h3>
-                  <p className="text-gray-600 mb-4 line-clamp-3">
-                    {project.description}
-                  </p>
+                  {project.description && (
+                    <p className="text-gray-600 mb-4 line-clamp-3">
+                      {project.description}
+                    </p>
+                  )}
                   <Link
                     to={`/proyectos/${project.id}`}
                     className="inline-flex items-center gap-2 text-item-blue font-medium hover:gap-3 transition-all"
@@ -295,24 +293,21 @@ export default function Proyectos({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Descripción corta
+                Descripción corta <span className="text-gray-400 font-normal">(opcional)</span>
               </label>
               <Textarea
                 value={newProject.description}
                 onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-                placeholder="Descripción breve del proyecto"
+                placeholder="Descripción breve del proyecto (aparecerá en la tarjeta preview)"
                 rows={3}
-                required
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Contenido completo (Markdown soportado)
-              </label>
-              <Textarea
+            <div className="pt-2">
+              <RichTextEditor
+                label="Contenido completo"
                 value={newProject.content}
-                onChange={(e) => setNewProject({ ...newProject, content: e.target.value })}
-                placeholder="Contenido detallado del proyecto"
+                onChange={(value) => setNewProject({ ...newProject, content: value })}
+                placeholder="Escribe el contenido detallado del proyecto..."
                 rows={8}
                 required
               />
@@ -384,24 +379,21 @@ export default function Proyectos({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Descripción corta
+                  Descripción corta <span className="text-gray-400 font-normal">(opcional)</span>
                 </label>
                 <Textarea
-                  value={editingProject.description}
+                  value={editingProject.description || ''}
                   onChange={(e) => setEditingProject({ ...editingProject, description: e.target.value })}
                   placeholder="Descripción breve del proyecto"
                   rows={3}
-                  required
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Contenido completo
-                </label>
-                <Textarea
-                  value={editingProject.content}
-                  onChange={(e) => setEditingProject({ ...editingProject, content: e.target.value })}
-                  placeholder="Contenido detallado del proyecto"
+              <div className="pt-2">
+                <RichTextEditor
+                  label="Contenido completo"
+                  value={editingProject.content || ''}
+                  onChange={(value) => setEditingProject({ ...editingProject, content: value })}
+                  placeholder="Escribe el contenido detallado del proyecto..."
                   rows={8}
                   required
                 />

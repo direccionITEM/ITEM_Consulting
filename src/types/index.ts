@@ -3,7 +3,7 @@
 export interface Project {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   content?: string;
   imageUrl: string;
   category: string;
@@ -13,7 +13,7 @@ export interface Project {
 export interface NewsItem {
   id: string;
   title: string;
-  excerpt: string;
+  excerpt?: string;
   content?: string;
   imageUrl: string;
   date: string;

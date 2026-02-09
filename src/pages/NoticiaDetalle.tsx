@@ -79,23 +79,19 @@ export default function NoticiaDetalle({ news }: NoticiaDetalleProps) {
           </div>
 
           {/* Excerpt */}
-          <div className="prose prose-lg max-w-none mb-12">
-            <p className="text-xl text-gray-700 leading-relaxed font-medium">{item.excerpt}</p>
-          </div>
+          {item.excerpt && (
+            <div className="prose prose-lg max-w-none mb-12">
+              <p className="text-xl text-gray-700 leading-relaxed font-medium">{item.excerpt}</p>
+            </div>
+          )}
 
           {/* Full Content */}
           {item.content ? (
-            <div className="prose prose-lg max-w-none">
+            <div className="prose prose-lg max-w-none ql-content-output">
               <div 
-                className="text-gray-700 leading-relaxed whitespace-pre-line"
+                className="text-gray-700 leading-relaxed"
                 dangerouslySetInnerHTML={{ 
                   __html: item.content
-                    .replace(/## (.*)/g, '<h2 class="text-2xl font-bold text-gray-900 mt-8 mb-4">$1</h2>')
-                    .replace(/### (.*)/g, '<h3 class="text-xl font-bold text-gray-900 mt-6 mb-3">$1</h3>')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/- (.*)/g, '<li class="ml-4 mb-1">$1</li>')
-                    .replace(/<li/g, '<li class="flex items-start gap-2"><span class="text-item-blue mt-1">•</span><span>')
-                    .replace(/<\/li>/g, '</span></li>')
                 }}
               />
             </div>

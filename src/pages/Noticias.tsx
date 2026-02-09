@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import RichTextEditor from '@/components/RichTextEditor';
 import type { NewsItem } from '@/types';
 import { importFromLinkedIn, isValidLinkedInUrl, type LinkedInPostData } from '@/services/linkedinImporter';
 
@@ -59,11 +60,6 @@ export default function Noticias({
       // Validar campos requeridos
       if (!newItem.title.trim()) {
         setSubmitError('El título es obligatorio');
-        setIsSubmitting(false);
-        return;
-      }
-      if (!newItem.excerpt.trim()) {
-        setSubmitError('El resumen es obligatorio');
         setIsSubmitting(false);
         return;
       }
@@ -267,9 +263,18 @@ export default function Noticias({
                   <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
                     {item.title}
                   </h3>
-                  <p className="text-gray-600 mb-4 line-clamp-3">
-                    {item.excerpt}
-                  </p>
+                  {item.excerpt ? (
+                    <p className="text-gray-600 mb-4 line-clamp-3">
+                      {item.excerpt}
+                    </p>
+                  ) : (
+                    <div 
+                      className="text-gray-600 mb-4 line-clamp-3 text-sm"
+                      dangerouslySetInnerHTML={{ 
+                        __html: item.content?.replace(/<[^>]*>/g, '').substring(0, 150) + '...' || '' 
+                      }}
+                    />
+                  )}
                   <Link
                     to={`/noticias/${item.id}`}
                     className="inline-flex items-center gap-2 text-item-blue font-medium hover:gap-3 transition-all"
@@ -342,24 +347,21 @@ export default function Noticias({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Resumen
+                Resumen <span className="text-gray-400 font-normal">(opcional)</span>
               </label>
               <Textarea
                 value={newItem.excerpt}
                 onChange={(e) => setNewItem({ ...newItem, excerpt: e.target.value })}
-                placeholder="Breve resumen de la noticia"
+                placeholder="Breve resumen de la noticia (aparecerá en la tarjeta preview)"
                 rows={3}
-                required
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Contenido completo
-              </label>
-              <Textarea
+            <div className="pt-2">
+              <RichTextEditor
+                label="Contenido completo"
                 value={newItem.content}
-                onChange={(e) => setNewItem({ ...newItem, content: e.target.value })}
-                placeholder="Contenido completo de la noticia"
+                onChange={(value) => setNewItem({ ...newItem, content: value })}
+                placeholder="Escribe el contenido completo de la noticia..."
                 rows={8}
                 required
               />
@@ -431,24 +433,21 @@ export default function Noticias({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Resumen
+                  Resumen <span className="text-gray-400 font-normal">(opcional)</span>
                 </label>
                 <Textarea
-                  value={editingNews.excerpt}
+                  value={editingNews.excerpt || ''}
                   onChange={(e) => setEditingNews({ ...editingNews, excerpt: e.target.value })}
                   placeholder="Breve resumen de la noticia"
                   rows={3}
-                  required
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Contenido completo
-                </label>
-                <Textarea
-                  value={editingNews.content}
-                  onChange={(e) => setEditingNews({ ...editingNews, content: e.target.value })}
-                  placeholder="Contenido completo de la noticia"
+              <div className="pt-2">
+                <RichTextEditor
+                  label="Contenido completo"
+                  value={editingNews.content || ''}
+                  onChange={(value) => setEditingNews({ ...editingNews, content: value })}
+                  placeholder="Escribe el contenido completo de la noticia..."
                   rows={8}
                   required
                 />

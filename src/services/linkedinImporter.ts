@@ -1,7 +1,7 @@
 /**
  * Servicio para importar posts de LinkedIn
- * Usa r.jina.ai (API gratuita) para extraer contenido de URLs
- * También intenta extraer Open Graph metadata como fallback
+ * Usa r.jina.ai para extraer contenido de URLs de LinkedIn Pulse
+ * Implementa limpieza de contenido para eliminar elementos de UI/login
  */
 
 export interface LinkedInPostData {
@@ -13,9 +13,159 @@ export interface LinkedInPostData {
   author?: string;
 }
 
+// Elementos de UI/login de LinkedIn que deben ser filtrados
+const LINKEDIN_NOISE_PATTERNS = [
+  'Aceptar y unirse a LinkedIn',
+  'Al hacer clic en',
+  'aceptas las Condiciones de uso',
+  'Pasar al contenido principal',
+  'Artículos',
+  'Personas',
+  'Learning',
+  'Empleos',
+  'Juegos',
+  'Unirse ahora',
+  'Iniciar sesión',
+  'Denunciar este artículo',
+  'Seguir',
+  'Recomendar',
+  'Celebrar',
+  'Apoyar',
+  'Encantar',
+  'Interesar',
+  'Hacer gracia',
+  'Comentar',
+  'Compartir',
+  'Copiar',
+  'LinkedIn',
+  'Facebook',
+  'Más artículos de',
+  'See all articles',
+  'Ver temas',
+  'Ventas',
+  'Marketing',
+  'Servicios de TI',
+  'Administración de empresas',
+  'Gestión de recursos humanos',
+  'Ingeniería',
+  'Competencias transversales',
+  'Ver todo',
+  'Acerca de',
+  'Accesibilidad',
+  'Condiciones de uso',
+  'Política de privacidad',
+  'Política de cookies',
+  'Inicia sesión para ver más contenido',
+  'Crea tu cuenta gratuita',
+  '¿Has olvidado tu contraseña?',
+  '¿Estás empezando a usar LinkedIn?',
+  'Fecha de publicación:',
+  'Show more',
+];
+
+// Patrones regex para limpiar contenido
+const CLEANUP_PATTERNS = [
+  /!\[Image \d+\]\([^)]+\)/g,  // Imágenes markdown ![Image N](url)
+  /\[([^\]]+)\]\([^)]+\)/g,     // Links markdown [text](url) -> conservar solo texto
+  /^\s*[-*]\s*/gm,              // Listas mal formadas al inicio de línea
+  /\n{3,}/g,                     // Múltiples saltos de línea
+];
+
+/**
+ * Limpia el contenido extraído eliminando elementos de UI/login de LinkedIn
+ */
+function cleanLinkedInContent(text: string): string {
+  const lines = text.split('\n');
+  const cleanedLines: string[] = [];
+  let inArticleContent = false;
+  let skipUntilNextSection = false;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Saltar líneas vacías al inicio
+    if (!inArticleContent && line === '') continue;
+    
+    // Detectar inicio del contenido real del artículo (después del título y autor)
+    if (!inArticleContent && line.length > 50 && !isNoiseLine(line)) {
+      inArticleContent = true;
+    }
+    
+    // Detectar fin del contenido del artículo
+    if (inArticleContent && (
+      line.startsWith('Más artículos de') ||
+      line.startsWith('Ver temas') ||
+      line.startsWith('LinkedIn ©') ||
+      line.startsWith('Inicia sesión para ver') ||
+      line === 'Show more' ||
+      line.startsWith('See all articles')
+    )) {
+      break;
+    }
+    
+    // Filtrar líneas de ruido
+    if (isNoiseLine(line)) continue;
+    
+    // Filtrar líneas que son solo emojis o muy cortas (menos de 3 caracteres)
+    if (line.length < 3 && !line.match(/[a-zA-ZáéíóúÁÉÍÓÚñÑ]/)) continue;
+    
+    // Filtrar líneas que son solo números (como contadores de likes)
+    if (/^\d+$/.test(line)) continue;
+    
+    cleanedLines.push(line);
+  }
+  
+  let cleaned = cleanedLines.join('\n\n');
+  
+  // Aplicar patrones de limpieza regex
+  cleaned = cleaned.replace(CLEANUP_PATTERNS[0], ''); // Imágenes
+  cleaned = cleaned.replace(CLEANUP_PATTERNS[1], '$1'); // Links -> texto
+  cleaned = cleaned.replace(CLEANUP_PATTERNS[2], ''); // Listas mal formadas
+  cleaned = cleaned.replace(CLEANUP_PATTERNS[3], '\n\n'); // Múltiples saltos
+  
+  return cleaned.trim();
+}
+
+/**
+ * Verifica si una línea es "ruido" (UI/login de LinkedIn)
+ */
+function isNoiseLine(line: string): boolean {
+  if (!line || line.length === 0) return true;
+  
+  return LINKEDIN_NOISE_PATTERNS.some(pattern => 
+    line.includes(pattern) || 
+    line.toLowerCase().includes(pattern.toLowerCase())
+  );
+}
+
+/**
+ * Extrae información del autor del contenido
+ */
+function extractAuthorInfo(lines: string[]): { author: string; authorLineIndex: number } {
+  for (let i = 0; i < Math.min(lines.length, 20); i++) {
+    const line = lines[i];
+    // Buscar línea que parezca un nombre de autor (no URL, no UI element)
+    if (line && 
+        line.length > 3 && 
+        line.length < 100 &&
+        !line.includes('http') &&
+        !line.includes('LinkedIn') &&
+        !line.includes('Artículos') &&
+        !line.includes('Fecha') &&
+        line.match(/[A-Z][a-z]+/) // Tiene al menos una palabra capitalizada
+    ) {
+      // Verificar que la siguiente línea no sea "Seguir" o similar
+      const nextLine = lines[i + 1];
+      if (nextLine && (nextLine.includes('Seguir') || nextLine.includes('Fecha de publicación'))) {
+        return { author: line.trim(), authorLineIndex: i };
+      }
+    }
+  }
+  return { author: '', authorLineIndex: -1 };
+}
+
 /**
  * Extrae el contenido de una URL de LinkedIn usando jina.ai
- * jina.ai es un servicio gratuito que extrae contenido limpio de artículos
  */
 export async function importFromLinkedIn(url: string): Promise<LinkedInPostData> {
   // Validar URL
@@ -25,98 +175,147 @@ export async function importFromLinkedIn(url: string): Promise<LinkedInPostData>
 
   try {
     // Usar r.jina.ai para extraer el contenido
-    // Este servicio extrae el texto limpio de cualquier URL
-    const jinaUrl = `https://r.jina.ai/http://${url.replace(/^https?:\/\//, '')}`;
+    const cleanUrl = url.replace(/^https?:\/\//, '');
+    const jinaUrl = `https://r.jina.ai/http://${cleanUrl}`;
     
-    const response = await fetch(jinaUrl);
+    const response = await fetch(jinaUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    });
+    
     if (!response.ok) {
-      throw new Error('No se pudo acceder al post de LinkedIn');
+      throw new Error(`Error al acceder al contenido: ${response.status}`);
     }
     
     const text = await response.text();
     
-    // Parsear el contenido devuelto por jina.ai
-    // El formato es: "Título\n\nContenido" o "Autor: X\nTítulo\n\nContenido"
-    const lines = text.split('\n').filter(line => line.trim());
-    
-    let title = '';
-    let content = '';
-    let author = '';
-    
-    // Intentar detectar el autor (formato típico: "Roberto José Liñán Ruiz: ...")
-    if (lines[0]?.includes(':')) {
-      const colonIndex = lines[0].indexOf(':');
-      author = lines[0].substring(0, colonIndex).trim();
-      title = lines[0].substring(colonIndex + 1).trim();
-      content = lines.slice(1).join('\n\n').trim();
-    } else {
-      title = lines[0] || 'Post de LinkedIn';
-      content = lines.slice(1).join('\n\n').trim();
+    // Verificar si es página de login (no hay contenido accesible)
+    if (text.includes('Inicia sesión para ver') && 
+        text.includes('Crea tu cuenta gratuita') &&
+        !text.includes('Fecha de publicación')) {
+      throw new Error('Este artículo requiere inicio de sesión en LinkedIn y no puede ser importado');
     }
     
-    // Limpiar el título (LinkedIn a veces añade "| LinkedIn")
+    // Parsear el formato de jina.ai: "Title: ...\n\nURL Source: ...\n\nMarkdown Content:"
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+    
+    // Extraer título
+    let title = '';
+    const titleLine = lines.find(l => l.startsWith('Title:'));
+    if (titleLine) {
+      title = titleLine.replace('Title:', '').trim();
+    }
+    
+    // Limpiar el título
     title = title.replace(/\s*\|\s*LinkedIn$/i, '').trim();
+    if (!title) title = 'Artículo de LinkedIn';
     
-    // Generar excerpt (primeros 200 caracteres del contenido)
-    const excerpt = content.substring(0, 200).replace(/\s+/g, ' ').trim() + (content.length > 200 ? '...' : '');
+    // Extraer autor
+    const { author, authorLineIndex } = extractAuthorInfo(lines);
     
-    // Intentar obtener imagen mediante Open Graph
+    // Encontrar el inicio del contenido Markdown
+    const markdownIndex = lines.findIndex(l => l === 'Markdown Content:');
+    let content = '';
+    
+    if (markdownIndex !== -1 && markdownIndex < lines.length - 1) {
+      // El contenido está después de "Markdown Content:"
+      const contentLines = lines.slice(markdownIndex + 1);
+      content = cleanLinkedInContent(contentLines.join('\n'));
+    } else {
+      // Fallback: buscar el contenido después del título
+      const titleIndex = lines.findIndex(l => l.includes(title));
+      if (titleIndex !== -1) {
+        const contentLines = lines.slice(titleIndex + 1);
+        content = cleanLinkedInContent(contentLines.join('\n'));
+      } else {
+        content = cleanLinkedInContent(text);
+      }
+    }
+    
+    // Si el contenido comienza con el título, quitarlo
+    if (content.toLowerCase().startsWith(title.toLowerCase())) {
+      content = content.substring(title.length).trim();
+    }
+    
+    // Limpiar cualquier "Seguir" o "Fecha de publicación" al inicio
+    content = content.replace(/^(Seguir\s*)?Fecha de publicación:[^\n]*\n*/i, '').trim();
+    
+    // Generar excerpt
+    const excerpt = content.substring(0, 200).replace(/\s+/g, ' ').trim() + 
+                    (content.length > 200 ? '...' : '');
+    
+    // Obtener imagen Open Graph
     const imageUrl = await fetchOpenGraphImage(url);
     
     return {
-      title: title || 'Post de LinkedIn',
+      title,
       content,
       excerpt,
       imageUrl,
       url,
-      author,
+      author: author || undefined,
     };
+    
   } catch (error) {
     console.error('Error importing from LinkedIn:', error);
-    throw new Error('No se pudo importar el post. Verifica que la URL sea pública y accesible.');
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('No se pudo importar el artículo. Verifica que la URL sea pública y accesible.');
   }
 }
 
 /**
  * Intenta obtener la imagen Open Graph de una URL
- * Usa un proxy CORS para evitar bloqueos
+ * Usa múltiples proxies CORS como fallback
  */
 async function fetchOpenGraphImage(url: string): Promise<string> {
-  try {
-    // Lista de proxies CORS públicos (fallback)
-    const proxies = [
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-      `https://corsproxy.io/?${encodeURIComponent(url)}`,
-    ];
-    
-    for (const proxyUrl of proxies) {
-      try {
-        const response = await fetch(proxyUrl, { 
-          method: 'GET',
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+  const proxies = [
+    (u: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+    (u: string) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+    (u: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+  ];
+  
+  for (const proxyFn of proxies) {
+    try {
+      const proxyUrl = proxyFn(url);
+      const response = await fetch(proxyUrl, { 
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        },
+        signal: AbortSignal.timeout(10000) // 10 segundos timeout
+      });
+      
+      if (!response.ok) continue;
+      
+      const html = await response.text();
+      
+      // Buscar meta tag Open Graph image (varios formatos posibles)
+      const ogImagePatterns = [
+        /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["'][^>]*>/i,
+        /<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["'][^>]*>/i,
+        /<meta[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["'][^>]*>/i,
+        /<meta[^>]*content=["']([^"']+)["'][^>]*name=["']twitter:image["'][^>]*>/i,
+      ];
+      
+      for (const pattern of ogImagePatterns) {
+        const match = html.match(pattern);
+        if (match && match[1]) {
+          // Verificar que la URL parezca válida (LinkedIn CDN)
+          const imageUrl = match[1];
+          if (imageUrl.includes('licdn.com') || imageUrl.includes('linkedin.com')) {
+            return imageUrl;
           }
-        });
-        
-        if (!response.ok) continue;
-        
-        const html = await response.text();
-        
-        // Buscar meta tag Open Graph image
-        const ogImageMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["'][^>]*>/i) ||
-                            html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["'][^>]*>/i);
-        
-        if (ogImageMatch && ogImageMatch[1]) {
-          return ogImageMatch[1];
         }
-        
-        break; // Si obtuvimos HTML pero no hay imagen, no intentar más proxies
-      } catch (e) {
-        continue; // Intentar siguiente proxy
       }
+      
+    } catch (e) {
+      // Continuar con el siguiente proxy
+      continue;
     }
-  } catch (error) {
-    console.warn('Could not fetch Open Graph image:', error);
   }
   
   // Imagen por defecto si no se encuentra
