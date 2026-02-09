@@ -83,22 +83,32 @@ const LINKEDIN_NOISE_PATTERNS = [
 // Patrones regex para limpiar contenido
 const CLEANUP_PATTERNS = [
   /!\[Image \d+\]\([^)]+\)/g,  // Imágenes markdown ![Image N](url)
-  /\[([^\]]+)\]\([^)]+\)/g,     // Links markdown [text](url) -> conservar solo texto
-  /^\s*[-*]\s*/gm,              // Listas mal formadas al inicio de línea
-  /\n{3,}/g,                     // Múltiples saltos de línea
-  /={5,}/g,                      // Separadores de línea como =====
   /!Image \d+:[^\n]*/g,         // !Image 2: Movilidad sostenible...
   /Image \d+:[^\n]*/g,          // Image 2: ...
+  /={5,}/g,                      // Separadores de línea como =====
 ];
 
 /**
- * Limpia el contenido extraído eliminando elementos de UI/login de LinkedIn
+ * Limpia el contenido extraído y convierte a HTML para el editor
+ * Preserva la estructura de párrafos y formato markdown básico
  */
 function cleanLinkedInContent(text: string): string {
   const lines = text.split('\n');
-  const cleanedLines: string[] = [];
+  const paragraphs: string[] = [];
+  let currentParagraph: string[] = [];
   let inArticleContent = false;
-  let skipUntilNextSection = false;
+  
+  const flushParagraph = () => {
+    if (currentParagraph.length > 0) {
+      const text = currentParagraph.join(' ').trim();
+      if (text) {
+        // Convertir markdown a HTML
+        let html = markdownToHtml(text);
+        paragraphs.push(html);
+      }
+      currentParagraph = [];
+    }
+  };
   
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i].trim();
@@ -107,7 +117,10 @@ function cleanLinkedInContent(text: string): string {
     if (!inArticleContent && line === '') continue;
     
     // Detectar líneas que son solo separadores visuales
-    if (/^={3,}$/.test(line) || /^-{3,}$/.test(line)) continue;
+    if (/^={3,}$/.test(line) || /^-{3,}$/.test(line)) {
+      flushParagraph();
+      continue;
+    }
     
     // Detectar líneas que contienen markdown de imágenes
     if (line.includes('!Image') || line.match(/^!\[.*\]\(/)) continue;
@@ -115,17 +128,15 @@ function cleanLinkedInContent(text: string): string {
     // Detectar líneas que parecen headers de jina.ai
     if (line.match(/^URL Source:/) || line.match(/^Markdown Content:/) || line.match(/^Title:/)) continue;
     
-    // Detectar inicio del contenido real del artículo (después del título y autor)
-    // El contenido real suele ser párrafos largos (>100 chars) o que no son ruido
-    if (!inArticleContent && line.length > 100 && !isNoiseLine(line)) {
+    // Detectar inicio del contenido real
+    if (!inArticleContent && line.length > 50 && !isNoiseLine(line)) {
       inArticleContent = true;
     }
-    // También aceptar líneas más cortas si ya hemos encontrado contenido bueno antes
-    if (!inArticleContent && cleanedLines.length > 0 && line.length > 20 && !isNoiseLine(line)) {
+    if (!inArticleContent && currentParagraph.length > 0 && line.length > 20 && !isNoiseLine(line)) {
       inArticleContent = true;
     }
     
-    // Detectar fin del contenido del artículo
+    // Detectar fin del contenido
     if (inArticleContent && (
       line.startsWith('Más artículos de') ||
       line.startsWith('Ver temas') ||
@@ -141,34 +152,47 @@ function cleanLinkedInContent(text: string): string {
     // Filtrar líneas de ruido
     if (isNoiseLine(line)) continue;
     
-    // Filtrar líneas que son solo emojis o muy cortas (menos de 3 caracteres)
+    // Filtrar líneas muy cortas (menos de 3 caracteres sin letras)
     if (line.length < 3 && !line.match(/[a-zA-ZáéíóúÁÉÍÓÚñÑ]/)) continue;
     
-    // Filtrar líneas que son solo números (como contadores de likes)
+    // Filtrar líneas que son solo números
     if (/^\d+$/.test(line)) continue;
     
-    // Filtrar líneas que parecen URLs de LinkedIn
+    // Filtrar URLs de LinkedIn
     if (line.match(/^https?:\/\/.*linkedin\.com/)) continue;
     
-    cleanedLines.push(line);
+    // Si la línea está vacía, guardar el párrafo actual
+    if (line === '') {
+      flushParagraph();
+    } else {
+      currentParagraph.push(line);
+    }
   }
   
-  let cleaned = cleanedLines.join('\n\n');
+  // No olvidar el último párrafo
+  flushParagraph();
   
-  // Aplicar patrones de limpieza regex
-  CLEANUP_PATTERNS.forEach((pattern, index) => {
-    if (index === 1) {
-      // Para el patrón de links, mantener solo el texto
-      cleaned = cleaned.replace(pattern, '$1');
-    } else {
-      cleaned = cleaned.replace(pattern, '');
-    }
-  });
+  // Unir párrafos con etiquetas <p>
+  return paragraphs.map(p => `<p>${p}</p>`).join('\n');
+}
+
+/**
+ * Convierte markdown básico a HTML
+ */
+function markdownToHtml(text: string): string {
+  // Preservar doble asterisco (negrita)
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   
-  // Limpiar múltiples saltos de línea
-  cleaned = cleaned.replace(/\n{4,}/g, '\n\n\n');
+  // Preservar asterisco simple (cursiva)
+  text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
   
-  return cleaned.trim();
+  // Convertir links markdown a HTML
+  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+  
+  // Limpiar múltiples espacios
+  text = text.replace(/\s+/g, ' ');
+  
+  return text.trim();
 }
 
 /**

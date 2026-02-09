@@ -110,6 +110,17 @@ export default function RichTextEditor({
           color: #9ca3af;
           font-style: normal;
         }
+        /* Asegurar que el dropdown de headers se vea correctamente */
+        .rich-text-editor .ql-picker-options {
+          z-index: 1000;
+        }
+        .rich-text-editor .ql-header .ql-picker-label {
+          display: flex;
+          align-items: center;
+        }
+        .ql-snow .ql-header.ql-picker {
+          width: 100px;
+        }
       `}</style>
     </div>
   );
