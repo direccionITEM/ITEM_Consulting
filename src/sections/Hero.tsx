@@ -1,4 +1,5 @@
 import { ArrowRight, AlertTriangle, FileText } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 
 export default function Hero() {
   const scrollToSection = (href: string) => {
@@ -7,6 +8,19 @@ export default function Hero() {
       element.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  const [videoError, setVideoError] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    // Intentar reproducir el video manualmente si el autoplay falla
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {
+        // El autoplay fue bloqueado o el video falló
+        setVideoError(true);
+      });
+    }
+  }, []);
 
   return (
     <section id="inicio" className="relative min-h-screen flex flex-col">
@@ -20,16 +34,20 @@ export default function Hero() {
           }}
         >
           {/* Video background - se muestra encima de la imagen si carga correctamente */}
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover z-[1]"
-            poster="https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=1920&h=1080&fit=crop"
-          >
-            <source src="/videos/video1.mp4" type="video/mp4" />
-          </video>
+          {!videoError && (
+            <video
+              ref={videoRef}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover z-[1]"
+              poster="https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=1920&h=1080&fit=crop"
+              onError={() => setVideoError(true)}
+            >
+              <source src="/videos/video1.mp4" type="video/mp4" />
+            </video>
+          )}
           <div className="hero-overlay absolute inset-0 z-[2]" />
         </div>
 

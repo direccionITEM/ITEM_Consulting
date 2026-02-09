@@ -181,8 +181,8 @@ export default function Layout({
                 </div>
                 <div className="flex items-center gap-3 text-gray-400">
                   <span className="text-item-blue">✉️</span>
-                  <a href="mailto:informacion@itemconsulting.es" className="hover:text-white transition-colors">
-                    informacion@itemconsulting.es
+                  <a href="mailto:direccion@itemconsulting.es" className="hover:text-white transition-colors">
+                    direccion@itemconsulting.es
                   </a>
                 </div>
               </div>

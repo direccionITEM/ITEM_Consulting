@@ -22,13 +22,22 @@ export default function Contacto() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitMessage('¡Mensaje enviado correctamente! Nos pondremos en contacto contigo pronto.');
-      setFormData({ name: '', email: '', subject: '', message: '' });
-      
-      setTimeout(() => setSubmitMessage(''), 5000);
-    }, 1500);
+    // Enviar el formulario usando mailto
+    const subject = encodeURIComponent(formData.subject || 'Contacto desde la web');
+    const body = encodeURIComponent(
+      `Nombre: ${formData.name}\n` +
+      `Email: ${formData.email}\n` +
+      `Asunto: ${formData.subject || 'No especificado'}\n\n` +
+      `Mensaje:\n${formData.message}`
+    );
+    
+    window.location.href = `mailto:direccion@itemconsulting.es?subject=${subject}&body=${body}`;
+    
+    setIsSubmitting(false);
+    setSubmitMessage('¡Mensaje preparado! Se abrirá tu cliente de correo para enviar el mensaje.');
+    setFormData({ name: '', email: '', subject: '', message: '' });
+    
+    setTimeout(() => setSubmitMessage(''), 5000);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -170,10 +179,10 @@ export default function Contacto() {
                     <div>
                       <h4 className="font-semibold text-gray-900 mb-1">Correo electrónico</h4>
                       <a 
-                        href="mailto:informacion@itemconsulting.es"
+                        href="mailto:direccion@itemconsulting.es"
                         className="text-item-blue hover:underline"
                       >
-                        informacion@itemconsulting.es
+                        direccion@itemconsulting.es
                       </a>
                     </div>
                   </div>
