@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://itemconsulting.es/sitemap.xml
+
+# Allow all bots to crawl everything
+Disallow: /admin/
+Disallow: /private/

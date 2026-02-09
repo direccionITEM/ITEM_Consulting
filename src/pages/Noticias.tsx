@@ -166,18 +166,26 @@ export default function Noticias({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Header */}
+      <section className="relative bg-item-blue py-24">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-20"
+          style={{ backgroundImage: `url('/images/5.png')` }}
+        />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
             Noticias
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <div className="w-20 h-1 bg-white mx-auto rounded-full mb-6" />
+          <p className="text-xl text-white/90 max-w-3xl mx-auto">
             Mantente informado sobre las últimas novedades en movilidad sostenible
             y proyectos de ITEM Consulting.
           </p>
         </div>
+      </section>
+
+      <div className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* News Grid */}
         {isLoading ? (
@@ -196,6 +204,7 @@ export default function Noticias({
                   <img
                     src={item.imageUrl}
                     alt={item.title}
+                    loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   

@@ -171,18 +171,26 @@ export default function Proyectos({
   const categories = [...new Set(projects.map(p => p.category))];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Header */}
+      <section className="relative bg-item-blue py-24">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-20"
+          style={{ backgroundImage: `url('/images/3.png')` }}
+        />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
             Nuestros Proyectos
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <div className="w-20 h-1 bg-white mx-auto rounded-full mb-6" />
+          <p className="text-xl text-white/90 max-w-3xl mx-auto">
             Descubre algunos de los proyectos de movilidad sostenible que hemos desarrollado
             para ayuntamientos, empresas y entidades públicas.
           </p>
         </div>
+      </section>
+
+      <div className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Categories Filter */}
         <div className="flex flex-wrap justify-center gap-4 mb-12">
@@ -216,6 +224,7 @@ export default function Proyectos({
                   <img
                     src={project.imageUrl}
                     alt={project.title}
+                    loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute top-4 left-4">
