@@ -10,27 +10,43 @@ export default function Hero() {
 
   return (
     <section id="inicio" className="relative min-h-screen flex flex-col">
-      {/* Hero Background */}
-      <div className="relative flex-1 flex items-center overflow-hidden">
-        
-        {/* Video de fondo */}
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          poster="./images/1.png"
-          className="absolute inset-0 w-full h-full object-cover z-[1]"
-        >
-          <source src="./videos/video1.mp4" type="video/mp4" />
-        </video>
-        
-        {/* Overlay oscuro */}
-        <div className="hero-overlay absolute inset-0 z-[2]" />
+      {/* Hero Background - Parte superior con video */}
+      <div 
+        className="relative flex-1 flex items-center"
+        style={{ minHeight: '600px' }}
+      >
+        {/* Contenedor del video - ocupa todo el espacio */}
+        <div className="absolute inset-0">
+          {/* Imagen de fallback */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ 
+              backgroundImage: `url('./images/1.png')`,
+            }}
+          />
+          
+          {/* Video */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ zIndex: 1 }}
+          >
+            <source src="./videos/video1.mp4" type="video/mp4" />
+          </video>
+          
+          {/* Overlay oscuro */}
+          <div 
+            className="hero-overlay absolute inset-0"
+            style={{ zIndex: 2 }}
+          />
+        </div>
 
-        {/* Contenido */}
-        <div className="container-custom relative z-10 py-32">
+        {/* Contenido del Hero */}
+        <div className="container-custom relative w-full py-32" style={{ zIndex: 10 }}>
           <div className="max-w-3xl animate-fade-in">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
               Ingeniería especializada en{' '}
