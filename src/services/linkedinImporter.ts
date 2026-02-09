@@ -76,13 +76,28 @@ export async function importFromLinkedIn(url: string): Promise<LinkedInPostData>
     });
     
     if (images.length > 0) {
-      // Usar la primera imagen que sea de LinkedIn
+      // PRIORIDAD 1: Imágenes del CDN de LinkedIn (media.licdn.com)
       for (const img of images) {
         const imgUrl = img[2];
-        if (imgUrl.includes('licdn.com') || imgUrl.includes('linkedin.com')) {
+        if (imgUrl.includes('media.licdn.com') || imgUrl.includes('licdn.com')) {
           imageUrl = imgUrl;
-          console.log('Selected image:', imageUrl);
+          console.log('Selected image (LinkedIn CDN):', imageUrl);
           break;
+        }
+      }
+      
+      // PRIORIDAD 2: Otras imágenes HTTPS que NO sean la misma página
+      if (imageUrl === '/images/5.png') {
+        for (const img of images) {
+          const imgUrl = img[2];
+          // Evitar URLs que sean la misma página o muy cortas
+          if (imgUrl.startsWith('https://') && 
+              !imgUrl.includes('/pulse/') && 
+              imgUrl.length > 50) {
+            imageUrl = imgUrl;
+            console.log('Selected image (other):', imageUrl);
+            break;
+          }
         }
       }
     }
@@ -137,13 +152,15 @@ function processMarkdownToHtml(markdown: string, authorName: string): string {
   const lines = markdown.split('\n');
   const paragraphs: string[] = [];
   let currentPara: string[] = [];
-  let inArticle = false;
+  let passedLoginWall = false;
+  let foundContent = false;
   
   const flushPara = () => {
     if (currentPara.length > 0) {
       const text = currentPara.join(' ').trim();
-      if (text && text.length > 5) {
+      if (text && text.length > 10) {
         paragraphs.push(convertLineToHtml(text));
+        foundContent = true;
       }
       currentPara = [];
     }
@@ -155,6 +172,13 @@ function processMarkdownToHtml(markdown: string, authorName: string): string {
     // Saltar líneas vacías
     if (!line) {
       flushPara();
+      continue;
+    }
+    
+    // Detectar que pasamos el muro de login
+    if (line.includes('Inicia sesión para ver más contenido') ||
+        line.includes('Crea tu cuenta gratuita')) {
+      passedLoginWall = true;
       continue;
     }
     
@@ -172,53 +196,58 @@ function processMarkdownToHtml(markdown: string, authorName: string): string {
       continue;
     }
     
-    // Saltar ruido de LinkedIn
-    if (isLinkedInNoise(line)) continue;
+    // Saltar ruido de LinkedIn UI
+    if (isLinkedInNoise(line)) {
+      // Pero si ya pasamos el login wall, algunas líneas pueden ser contenido real
+      if (!passedLoginWall) continue;
+    }
     
     // Detectar fin del artículo
     if (line.includes('Más artículos de') || 
-        line.includes('Ver temas') ||
-        line.includes('Inicia sesión') ||
-        line.includes('Al hacer clic en')) {
+        line.includes('Ver temas')) {
       break;
     }
     
     // Saltar URLs solitarias
     if (line.match(/^https?:\/\//)) continue;
     
+    // Acumular línea
     currentPara.push(line);
   }
   
   flushPara();
   
+  // Si no encontramos contenido sustancial, puede que el artículo requiera login
+  if (!foundContent || paragraphs.length < 2) {
+    console.warn('Poco contenido encontrado - el artículo puede requerir login');
+  }
+  
   return paragraphs.join('\n');
 }
 
 /**
- * Verifica si es ruido de LinkedIn
+ * Verifica si es ruido de UI de LinkedIn (antes del contenido real)
  */
 function isLinkedInNoise(line: string): boolean {
   const noise = [
-    'Aceptar y unirse',
-    'Al hacer clic',
-    'Condiciones de uso',
-    'Política de privacidad',
-    'Política de cookies',
+    'Aceptar y unirse a LinkedIn',
+    'Al hacer clic en «Continuar»',
+    'Al hacer clic en',
+    'aceptas las Condiciones de uso',
     'Pasar al contenido principal',
     'Denunciar este artículo',
     'Unirse ahora',
-    'Iniciar sesión',
-    'Ver todo',
-    'Ver temas',
-    'Acerca de',
-    'Accesibilidad',
-    'Centro de Ayuda',
-    'Privacidad',
-    'Condiciones',
+    '¿Estás empezando a usar LinkedIn?',
+    'Únete ahora',
+    'Crea tu cuenta gratuita',
+    'Inicia sesión para ver',
+    '¿Has olvidado tu contraseña?',
+    'Iniciar sesión con el email',
+    'o',
+    'Mostrar',
   ];
   
-  const lower = line.toLowerCase();
-  return noise.some(n => lower.includes(n.toLowerCase()));
+  return noise.some(n => line.includes(n));
 }
 
 /**
