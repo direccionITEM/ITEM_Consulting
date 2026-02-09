@@ -6,6 +6,8 @@ interface LayoutProps {
   children: React.ReactNode;
   isAuthenticated: boolean;
   onLogout: () => void;
+  onAdminClick?: () => void;
+  showAdminButton?: boolean;
 }
 
 const navItems = [
@@ -19,7 +21,13 @@ const navItems = [
   { label: 'Contacto', href: '/contacto' },
 ];
 
-export default function Layout({ children, isAuthenticated, onLogout }: LayoutProps) {
+export default function Layout({ 
+  children, 
+  isAuthenticated, 
+  onLogout, 
+  onAdminClick,
+  showAdminButton = false 
+}: LayoutProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
@@ -39,6 +47,11 @@ export default function Layout({ children, isAuthenticated, onLogout }: LayoutPr
     }
     return location.pathname.startsWith(href);
   };
+
+  // Determinar si estamos en página de proyectos o noticias
+  const isProjectsPage = location.pathname === '/proyectos' || location.pathname.startsWith('/proyectos/');
+  const isNewsPage = location.pathname === '/noticias' || location.pathname.startsWith('/noticias/');
+  const shouldShowAdminButton = showAdminButton || isProjectsPage || isNewsPage;
 
   return (
     <div className="min-h-screen bg-white">
@@ -218,6 +231,17 @@ export default function Layout({ children, isAuthenticated, onLogout }: LayoutPr
               <p className="text-gray-500 text-sm">
                 © ITEM Consulting Engineering S.L. Todos los derechos reservados.
               </p>
+              
+              {/* Admin Button - Solo icono, al final del footer */}
+              {!isAuthenticated && shouldShowAdminButton && onAdminClick && (
+                <button
+                  onClick={onAdminClick}
+                  className="p-2 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-lg transition-colors"
+                  title="Acceso de administración"
+                >
+                  <Lock size={18} />
+                </button>
+              )}
             </div>
           </div>
         </div>

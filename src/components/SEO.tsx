@@ -20,7 +20,7 @@ export default function SEO({
   canonical
 }: SEOProps) {
   const siteTitle = title ? `${title} | ITEM Consulting` : 'ITEM Consulting | Ingeniería de Movilidad Sostenible';
-  const siteUrl = 'https://itemconsulting.es';
+  const siteUrl = 'https://item-consulting.vercel.app';
   
   return (
     <Helmet>
