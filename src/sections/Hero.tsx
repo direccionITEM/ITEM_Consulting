@@ -12,13 +12,24 @@ export default function Hero() {
     <section id="inicio" className="relative min-h-screen flex flex-col">
       {/* Hero Background */}
       <div className="relative flex-1 flex items-center">
-        {/* Background Image - Imagen de ejemplo de movilidad urbana sostenible */}
+        {/* Background Video con imagen fallback */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: `url('https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=1920&h=1080&fit=crop')`,
           }}
         >
+          {/* Video background - se muestra encima de la imagen si carga correctamente */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+            poster="https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=1920&h=1080&fit=crop"
+          >
+            <source src="/videos/video1.mp4" type="video/mp4" />
+          </video>
           <div className="hero-overlay absolute inset-0" />
         </div>
 
