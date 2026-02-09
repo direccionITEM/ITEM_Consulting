@@ -16,60 +16,55 @@ export default function Hero() {
     const video = videoRef.current;
     if (video) {
       video.addEventListener('loadeddata', () => {
-        console.log('Video cargado correctamente');
+        console.log('Video cargado');
         setVideoLoaded(true);
       });
       video.addEventListener('error', (e) => {
-        console.error('Error cargando el video:', e);
+        console.error('Error video:', e);
       });
-      
-      // Intentar reproducir
-      video.play().catch(err => {
-        console.log('Autoplay bloqueado o error:', err);
-      });
+      video.play().catch(err => console.log('Autoplay bloqueado:', err));
     }
   }, []);
 
   return (
     <section id="inicio" className="relative min-h-screen flex flex-col">
       {/* Hero Background */}
-      <div className="relative flex-1 flex items-center">
-        {/* Background Video con imagen fallback */}
-        <div className="absolute inset-0">
-          {/* Imagen de fallback (detrás del video) */}
-          <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{
-              backgroundImage: `url('https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=1920&h=1080&fit=crop')`,
-            }}
-          />
-          
-          {/* Video background */}
-          <video
-            ref={videoRef}
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ 
-              zIndex: 1,
-              opacity: videoLoaded ? 1 : 0,
-              transition: 'opacity 0.5s ease-in-out'
-            }}
-          >
-            <source src="videos/video1.mp4" type="video/mp4" />
-          </video>
-          
-          {/* Overlay oscuro */}
-          <div 
-            className="hero-overlay absolute inset-0" 
-            style={{ zIndex: 2 }}
-          />
-        </div>
+      <div className="relative flex-1 flex items-center overflow-hidden">
+        
+        {/* CAPA 1: Imagen de fallback (siempre visible como fondo) */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=1920&h=1080&fit=crop')`,
+            zIndex: 0
+          }}
+        />
+        
+        {/* CAPA 2: Video (encima de la imagen) */}
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ 
+            zIndex: 1,
+            opacity: videoLoaded ? 1 : 0,
+            transition: 'opacity 0.5s ease-in-out'
+          }}
+        >
+          <source src="./videos/video1.mp4" type="video/mp4" />
+        </video>
+        
+        {/* CAPA 3: Overlay oscuro (encima de todo) */}
+        <div 
+          className="hero-overlay absolute inset-0" 
+          style={{ zIndex: 2 }}
+        />
 
-        {/* Content */}
+        {/* CAPA 4: Contenido (encima del overlay) */}
         <div className="container-custom relative z-10 py-32">
           <div className="max-w-3xl animate-fade-in">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
@@ -145,7 +140,7 @@ export default function Hero() {
         <div className="container-custom">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">
-ITEM Consulting
+              ITEM Consulting
             </h2>
             <p className="text-lg text-gray-700 leading-relaxed mb-6">
               Somos una consultora de ingeniería especializada en infraestructuras del transporte, 
