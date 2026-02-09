@@ -73,7 +73,7 @@ export const onAuthChange = (callback: (user: FirebaseUser | null) => void) => {
 export const projectsCollection = collection(db, 'projects');
 
 export const getProjects = async () => {
-  const q = query(projectsCollection, orderBy('date', 'desc'));
+  const q = query(projectsCollection, orderBy('createdAt', 'desc'));
   const snapshot = await getDocs(q);
   return snapshot.docs.map(doc => ({
     id: doc.id,
