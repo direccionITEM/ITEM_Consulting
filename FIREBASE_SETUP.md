@@ -1,134 +1,148 @@
-# Configuración de Firebase Authentication
+# Configuración de Firebase para ITEM Consulting
+
+## 🚀 Primeros pasos
+
+### 1. Habilitar Firestore Database
+
+1. Ve a [Firebase Console](https://console.firebase.google.com/)
+2. Selecciona tu proyecto `item-consulting`
+3. Ve a **Firestore Database** en el menú lateral
+4. Haz clic en **Crear base de datos**
+5. Selecciona **modo de prueba** (o producción si prefieres reglas más estrictas)
+6. Elige la ubicación `europe-west` (más cercana a España)
+
+### 2. Habilitar Firebase Storage
+
+1. Ve a **Storage** en el menú lateral
+2. Haz clic en **Comenzar**
+3. Selecciona **modo de prueba**
+4. Elige la misma ubicación que Firestore
+
+### 3. Crear colecciones
+
+Las colecciones se crearán automáticamente al añadir el primer documento, pero puedes crearlas manualmente:
+
+- `projects` - Para los proyectos
+- `news` - Para las noticias
+
+### 4. Migrar datos existentes
+
+Para migrar los datos iniciales, necesitas:
+
+1. Copiar los datos de `src/hooks/useAuth.ts` (las constantes `initialProjects` e `initialNews`)
+2. Pegarlos en el script `scripts/migrate-to-firebase.js`
+3. Configurar variables de entorno localmente
+4. Ejecutar el script
+
+```bash
+# Instalar firebase-admin si es necesario
+npm install -g firebase-tools
+
+# Login en Firebase
+npx firebase login
+
+# Ejecutar migración
+node scripts/migrate-to-firebase.js
+```
+
+## 🔒 Configurar reglas de seguridad
+
+### Firestore Rules
+
+Ve a Firestore Database > Reglas y pega:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Permitir lectura pública
+    match /projects/{projectId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /news/{newsId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}
+```
+
+### Storage Rules
+
+Ve a Storage > Reglas y pega:
+
+```
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}
+```
 
 ## 📋 Resumen de cambios
 
-Se ha migrado el sistema de autenticación de un login local con hash SHA-256 a **Firebase Authentication**.
+### Funcionalidades implementadas:
 
-## 🔧 Pasos para configurar Firebase
+✅ **Login con email/password**  
+✅ **Login con Google** (solo correos autorizados)  
+✅ **Ver contraseña** (botón de ojo)  
+✅ **Añadir proyectos/noticias** con imagen  
+✅ **Editar proyectos/noticias**  
+✅ **Eliminar proyectos/noticias**  
+✅ **Botón de admin** abajo a la derecha (solo en Noticias y Proyectos)  
+✅ **Datos en Firebase** (Firestore + Storage)  
 
-### 1. Crear proyecto en Firebase
+### Estructura de datos:
 
-1. Ve a [Firebase Console](https://console.firebase.google.com/)
-2. Haz clic en "Agregar proyecto"
-3. Sigue los pasos para crear un nuevo proyecto
-4. **No** es necesario habilitar Google Analytics (opcional)
-
-### 2. Registrar la aplicación web
-
-1. En el panel del proyecto, haz clic en el icono `</>` para agregar una app web
-2. Dale un nombre a la app (ej: "ITEM Consulting Web")
-3. **No** marques la opción de "Firebase Hosting" (ya usas Vercel)
-4. Haz clic en "Registrar app"
-
-### 3. Obtener las credenciales
-
-Después de registrar la app, Firebase mostrará un código similar a este:
-
-```javascript
-const firebaseConfig = {
-  apiKey: "AIzaSyB...",
-  authDomain: "tu-proyecto.firebaseapp.com",
-  projectId: "tu-proyecto-id",
-  storageBucket: "tu-proyecto.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef123456"
-};
+**Proyecto:**
+```typescript
+{
+  id: string;
+  title: string;
+  description: string;
+  content: string;
+  imageUrl: string;
+  category: string;
+  date: string;
+}
 ```
 
-### 4. Configurar variables de entorno
-
-1. Copia el archivo `.env.example` y renómbralo a `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-
-2. Edita el archivo `.env` y reemplaza los valores con los de tu proyecto Firebase:
-   ```env
-   VITE_FIREBASE_API_KEY=tu-api-key-real
-   VITE_FIREBASE_AUTH_DOMAIN=tu-proyecto.firebaseapp.com
-   VITE_FIREBASE_PROJECT_ID=tu-proyecto-id
-   VITE_FIREBASE_STORAGE_BUCKET=tu-proyecto.appspot.com
-   VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
-   VITE_FIREBASE_APP_ID=1:123456789:web:abcdef123456
-   ```
-
-   > ⚠️ **IMPORTANTE**: El archivo `.env` contiene información sensible. **NUNCA** lo subas a Git (ya está en `.gitignore`).
-
-### 5. Crear un usuario en Firebase (para login con email)
-
-1. En Firebase Console, ve a "Authentication" > "Users"
-2. Haz clic en "Agregar usuario"
-3. Introduce el email y contraseña para el acceso de administración
-4. Guarda el usuario
-
-### 6. Habilitar Email/Password como método de login
-
-1. Ve a "Authentication" > "Sign-in method"
-2. Haz clic en "Email/Password"
-3. Activa la primera opción "Email/Password"
-4. Guarda los cambios
-
-### 7. Habilitar Google Sign-In
-
-1. Ve a "Authentication" > "Sign-in method"
-2. Haz clic en "Google"
-3. Activa el proveedor "Google"
-4. Selecciona tu email de soporte
-5. Guarda los cambios
-
-> **Nota**: Para desarrollo local, el dominio `localhost` ya está autorizado por defecto en Firebase. Para producción, asegúrate de agregar tu dominio en "Authorized domains".
-
-## 🚀 Ejecutar la aplicación
-
-```bash
-npm run dev
+**Noticia:**
+```typescript
+{
+  id: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  imageUrl: string;
+  date: string;
+}
 ```
-
-Ahora el login usará Firebase Authentication en lugar del sistema anterior.
-
-## 📁 Archivos modificados/creados
-
-| Archivo | Descripción |
-|---------|-------------|
-| `src/lib/firebase.ts` | Configuración de Firebase con Google Sign-In |
-| `src/hooks/useAuth.ts` | Hooks de autenticación con email y Google |
-| `src/components/Layout.tsx` | Login con email/password y botón de Google |
-| `src/pages/Proyectos.tsx` | Login con email/password y botón de Google |
-| `src/pages/Noticias.tsx` | Login con email/password y botón de Google |
-| `.env.example` | Plantilla de variables de entorno |
-| `package.json` | Agregada dependencia `firebase` |
-
-## 🔒 Seguridad
-
-- Las credenciales de Firebase se almacenan en variables de entorno
-- Firebase Auth maneja automáticamente la seguridad de las contraseñas
-- Las sesiones se gestionan mediante tokens JWT de Firebase
-- No es necesario almacenar contraseñas en localStorage
-
-## 📝 Notas adicionales
-
-- El sistema anterior usaba el usuario fijo `ITEM` con contraseña hasheada SHA-256
-- Ahora puedes tener múltiples usuarios administradores desde Firebase Console
-- Firebase Auth persiste la sesión automáticamente
-- **Login con Google**: Solo los correos autorizados pueden acceder:
-  - `rayengea@gmail.com`
-  - `direccion@itemconsulting.es`
-  - Si un usuario intenta acceder con otro correo de Google, se le cerrará la sesión inmediatamente
 
 ## 🆘 Solución de problemas
 
-### Error: "Firebase App already exists"
-Esto ocurre si intentas inicializar Firebase más de una vez. El archivo `firebase.ts` ya maneja esto correctamente.
+### "Error al iniciar sesión con Google"
 
-### Error: "Invalid API key"
-Verifica que las variables de entorno en `.env` sean correctas y que el archivo esté en la raíz del proyecto.
+Verifica que el dominio esté autorizado en:
+Firebase Console > Authentication > Settings > Authorized domains
 
-### El login no funciona
-1. Verifica que hayas creado un usuario en Firebase Console
-2. Asegúrate de que el método Email/Password esté habilitado
-3. Revisa la consola del navegador para ver errores específicos
+Agrega:
+- `localhost`
+- `item-consulting.firebaseapp.com`
+- Tu dominio de Vercel
 
-## 📚 Documentación de Firebase
+### "No se pueden subir imágenes"
 
-- [Firebase Auth Web](https://firebase.google.com/docs/auth/web/start)
-- [Manage Users](https://firebase.google.com/docs/auth/web/manage-users)
+Verifica las reglas de Storage y que estés autenticado.
+
+### "No aparecen los datos"
+
+Verifica que:
+1. Las colecciones existen en Firestore
+2. Las reglas permiten lectura pública
+3. Hay documentos en las colecciones
