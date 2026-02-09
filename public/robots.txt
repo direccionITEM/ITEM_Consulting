@@ -1,8 +1,28 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://itemconsulting.es/sitemap.xml
+# Sitemap
+Sitemap: https://item-consulting.vercel.app/sitemap.xml
 
-# Allow all bots to crawl everything
-Disallow: /admin/
-Disallow: /private/
+# Crawl-delay
+Crawl-delay: 1
+
+# Disallow admin/private routes
+Disallow: /admin
+Disallow: /private
+Disallow: /api
+
+# Allow specific bots
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0.5
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /

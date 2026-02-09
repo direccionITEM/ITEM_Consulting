@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Calendar, User, ArrowLeft } from 'lucide-react';
+import SEO from '@/components/SEO';
 import type { NewsItem } from '@/types';
 
 interface NoticiaDetalleProps {
@@ -35,6 +36,13 @@ export default function NoticiaDetalle({ news }: NoticiaDetalleProps) {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEO 
+        title={item.title}
+        description={item.excerpt || `Noticia de ITEM Consulting: ${item.title}`}
+        image={item.imageUrl}
+        type="article"
+      />
+      
       {/* Header Image */}
       <div className="relative h-96">
         <img

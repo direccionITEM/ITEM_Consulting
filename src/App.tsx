@@ -1,8 +1,9 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { Suspense, lazy, useState } from 'react';
+import { Suspense, lazy, useState, useEffect } from 'react';
 import { useAuth, useProjects, useNews } from '@/hooks/useAuth';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
+import SitemapGenerator from '@/components/SitemapGenerator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -179,6 +180,9 @@ function App() {
 
   return (
     <>
+      {/* Generador de sitemap dinámico */}
+      <SitemapGenerator projects={projects} news={news} />
+      
       <Layout 
         isAuthenticated={isAuthenticated} 
         onLogout={logout}

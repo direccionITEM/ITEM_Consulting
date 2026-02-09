@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Tag } from 'lucide-react';
+import SEO from '@/components/SEO';
 import type { Project } from '@/types';
 
 interface ProyectoDetalleProps {
@@ -35,6 +36,13 @@ export default function ProyectoDetalle({ projects }: ProyectoDetalleProps) {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEO 
+        title={project.title}
+        description={project.description || `Proyecto de ${project.category || 'movilidad sostenible'} desarrollado por ITEM Consulting`}
+        image={project.imageUrl}
+        type="article"
+      />
+      
       {/* Header Image */}
       <div className="relative h-96">
         <img

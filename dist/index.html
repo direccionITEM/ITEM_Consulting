@@ -2,38 +2,145 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="./icono.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0ea5e9" />
-    <meta name="description" content="ITEM Consulting - Ingeniería especializada en infraestructuras del transporte, economía y movilidad. Planes de Movilidad Urbana Sostenible (PMUS), estudios de tráfico y consultoría en Murcia y toda España." />
-    <meta name="keywords" content="PMUS, movilidad sostenible, estudios de tráfico, consultoría de movilidad, transporte, ingeniería, Murcia, España" />
-    <meta name="author" content="ITEM Consulting Engineering S.L." />
-    <meta name="robots" content="index, follow" />
     
-    <!-- Open Graph -->
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="./icono.png" />
+    <link rel="apple-touch-icon" href="./icono.png" />
+    
+    <!-- Tema y color -->
+    <meta name="theme-color" content="#0ea5e9" />
+    <meta name="msapplication-TileColor" content="#0ea5e9" />
+    
+    <!-- SEO Meta Tags -->
+    <title>ITEM Consulting | Ingeniería de Movilidad Sostenible - PMUS y Estudios de Tráfico</title>
+    <meta name="description" content="ITEM Consulting - Expertos en Planes de Movilidad Urbana Sostenible (PMUS), estudios de tráfico y consultoría de transporte. Más de 15 años de experiencia en Murcia y toda España." />
+    <meta name="keywords" content="PMUS, Plan de Movilidad Urbana Sostenible, estudios de tráfico, consultoría de movilidad, transporte sostenible, ingeniería de transporte, Murcia, España, PTT, Plan de Transporte al Trabajo" />
+    <meta name="author" content="ITEM Consulting Engineering S.L." />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="revisit-after" content="7 days" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://item-consulting.vercel.app/" />
+    
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="ITEM Consulting" />
     <meta property="og:title" content="ITEM Consulting | Ingeniería de Movilidad Sostenible" />
-    <meta property="og:description" content="Ingeniería especializada en infraestructuras del transporte, economía y movilidad. Planes PMUS, estudios de tráfico y consultoría." />
+    <meta property="og:description" content="Expertos en Planes PMUS, estudios de tráfico y consultoría de transporte. Más de 15 años de experiencia." />
     <meta property="og:image" content="https://item-consulting.vercel.app/images/logo.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="ITEM Consulting Logo" />
     <meta property="og:url" content="https://item-consulting.vercel.app" />
     <meta property="og:locale" content="es_ES" />
     
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@itemconsulting" />
+    <meta name="twitter:creator" content="@itemconsulting" />
     <meta name="twitter:title" content="ITEM Consulting | Ingeniería de Movilidad Sostenible" />
-    <meta name="twitter:description" content="Ingeniería especializada en infraestructuras del transporte, economía y movilidad." />
+    <meta name="twitter:description" content="Expertos en Planes PMUS, estudios de tráfico y consultoría de transporte." />
     <meta name="twitter:image" content="https://item-consulting.vercel.app/images/logo.png" />
+    <meta name="twitter:image:alt" content="ITEM Consulting Logo" />
     
     <!-- Preconnect para optimizar carga -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://firestore.googleapis.com" />
+    <link rel="preconnect" href="https://www.googleapis.com" />
     
-    <title>ITEM Consulting | Ingeniería de Movilidad Sostenible</title>
-    <script type="module" crossorigin src="./assets/index-D7ZJ1bhm.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-Dqa9A8Cy.css">
+    <!-- DNS Prefetch -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
+    
+    <!-- Structured Data - Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "ITEM Consulting Engineering S.L.",
+      "alternateName": "ITEM Consulting",
+      "url": "https://item-consulting.vercel.app",
+      "logo": "https://item-consulting.vercel.app/images/logo.png",
+      "description": "Ingeniería especializada en infraestructuras del transporte, economía y movilidad urbana sostenible.",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "C/ Fuensanta, 9",
+        "addressLocality": "Murcia",
+        "addressRegion": "Murcia",
+        "postalCode": "30008",
+        "addressCountry": "ES"
+      },
+      "telephone": "+34619620268",
+      "email": "direccion@itemconsulting.es",
+      "sameAs": [
+        "https://es.linkedin.com/in/roberto-jos%C3%A9-li%C3%B1%C3%A1n-ruiz"
+      ],
+      "areaServed": {
+        "@type": "Country",
+        "name": "España"
+      }
+    }
+    </script>
+    
+    <!-- Structured Data - LocalBusiness -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "ITEM Consulting Engineering S.L.",
+      "image": "https://item-consulting.vercel.app/images/logo.png",
+      "url": "https://item-consulting.vercel.app",
+      "telephone": "+34619620268",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "C/ Fuensanta, 9",
+        "addressLocality": "Murcia",
+        "addressRegion": "Murcia",
+        "postalCode": "30008",
+        "addressCountry": "ES"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 37.9922,
+        "longitude": -1.1307
+      },
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "08:00",
+        "closes": "15:00"
+      },
+      "priceRange": "€€"
+    }
+    </script>
+    
+    <!-- Preload critical assets -->
+    <link rel="preload" href="./images/logo.png" as="image" />
+    <link rel="preload" href="./icono.png" as="image" />
+    <script type="module" crossorigin src="./assets/index-CVGdD90L.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/vendor-react-CeYflw_g.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-ui-BrXtxLbh.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-firebase-CbrZR1zt.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-icons-BzSdIiO6.js">
+    <link rel="stylesheet" crossorigin href="./assets/css/index-D0oUdEDO.css">
   </head>
   <body>
     <div id="root"></div>
+    
+    <!-- No-JS fallback -->
+    <noscript>
+      <style>
+        body { font-family: system-ui, sans-serif; margin: 0; padding: 2rem; }
+        .noscript-msg { max-width: 600px; margin: 0 auto; text-align: center; }
+      </style>
+      <div class="noscript-msg">
+        <h1>ITEM Consulting</h1>
+        <p>Para ver esta página necesitas habilitar JavaScript en tu navegador.</p>
+        <p>O contacta con nosotros en: <a href="mailto:direccion@itemconsulting.es">direccion@itemconsulting.es</a></p>
+      </div>
+    </noscript>
   </body>
 </html>

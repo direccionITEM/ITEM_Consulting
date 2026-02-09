@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "node --experimental-vm-modules node_modules/vite/bin/vite.js",
-    "build": "node --experimental-vm-modules node_modules/vite/bin/vite.js build",
+    "build": "node scripts/generate-sitemap.js && node --experimental-vm-modules node_modules/vite/bin/vite.js build",
+    "build:only": "node --experimental-vm-modules node_modules/vite/bin/vite.js build",
     "lint": "eslint .",
-    "preview": "node --experimental-vm-modules node_modules/vite/bin/vite.js preview"
+    "preview": "node --experimental-vm-modules node_modules/vite/bin/vite.js preview",
+    "sitemap": "node scripts/generate-sitemap.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
