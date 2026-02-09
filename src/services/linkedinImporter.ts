@@ -117,8 +117,20 @@ export async function importFromLinkedIn(url: string): Promise<LinkedInPostData>
     }
     
     // Procesar contenido - filtrar y convertir a HTML
-    const content = processMarkdownToHtml(markdownContent, author);
+    let content = processMarkdownToHtml(markdownContent, author);
     console.log('Processed content length:', content.length);
+    
+    // Si no hay contenido sustancial, es porque LinkedIn bloquea el artículo tras login
+    // En ese caso, al menos extraemos el primer párrafo (que suele ser el título repetido o un resumen)
+    if (!content || content.length < 100) {
+      console.log('Limited content detected - LinkedIn login wall active');
+      // Extraer cualquier texto que no sea UI antes del login wall
+      const beforeLogin = markdownContent.split('Aceptar y unirse a LinkedIn')[0];
+      const fallbackContent = extractFallbackContent(beforeLogin, author);
+      if (fallbackContent) {
+        content = fallbackContent;
+      }
+    }
     
     // Generar excerpt
     const textContent = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -128,6 +140,7 @@ export async function importFromLinkedIn(url: string): Promise<LinkedInPostData>
     console.log('Title:', title);
     console.log('Author:', author);
     console.log('Image:', imageUrl);
+    console.log('Content length:', content.length);
     console.log('Content preview:', content.substring(0, 200));
     
     return {
@@ -147,13 +160,29 @@ export async function importFromLinkedIn(url: string): Promise<LinkedInPostData>
 
 /**
  * Procesa markdown y convierte a HTML limpio
- * ESTRATEGIA: El contenido real del artículo está ANTES del muro de login
+ * ESTRATEGIA: Extraer TODO el contenido antes del muro de login
  */
 function processMarkdownToHtml(markdown: string, authorName: string): string {
-  const lines = markdown.split('\n');
+  // Dividir en el muro de login - TODO antes de esto es contenido potencial
+  const loginWallMarkers = [
+    'Aceptar y unirse a LinkedIn',
+    'Inicia sesión para ver más contenido',
+    'Crea tu cuenta gratuita o inicia sesión',
+  ];
+  
+  let contentBeforeLogin = markdown;
+  for (const marker of loginWallMarkers) {
+    const idx = contentBeforeLogin.indexOf(marker);
+    if (idx !== -1) {
+      contentBeforeLogin = contentBeforeLogin.substring(0, idx);
+      console.log('Found login wall marker:', marker);
+      break;
+    }
+  }
+  
+  const lines = contentBeforeLogin.split('\n');
   const paragraphs: string[] = [];
   let currentPara: string[] = [];
-  let inLoginSection = false;
   
   const flushPara = () => {
     if (currentPara.length > 0) {
@@ -168,25 +197,19 @@ function processMarkdownToHtml(markdown: string, authorName: string): string {
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i].trim();
     
-    // DETECTAR INICIO DEL LOGIN WALL - todo después de esto es basura
-    if (line.includes('Aceptar y unirse a LinkedIn') ||
-        line.includes('Inicia sesión para ver más contenido') ||
-        line.includes('Crea tu cuenta gratuita o inicia sesión') ||
-        line.includes('Email o teléfono') ||
-        line === 'Mostrar' ||
-        line.match(/^Contraseña\s*$/i)) {
-      inLoginSection = true;
-      flushPara(); // Guardar lo que teníamos antes del login
-      continue;
-    }
-    
-    // Si estamos en la sección de login, ignorar todo
-    if (inLoginSection) continue;
-    
     // Saltar líneas vacías
     if (!line) {
       flushPara();
       continue;
+    }
+    
+    // Saltar el título si está repetido al inicio
+    if (i === 0 && line.includes('Movilidad sostenible')) {
+      // Verificar si la siguiente línea es separador
+      if (lines[i + 1] && lines[i + 1].includes('===')) {
+        i++; // Saltar también el separador
+        continue;
+      }
     }
     
     // Saltar autor
@@ -220,22 +243,23 @@ function processMarkdownToHtml(markdown: string, authorName: string): string {
 
 /**
  * Detecta si el texto es parte de un formulario de login
+ * Solo detecta si el texto ES exactamente eso, no si lo contiene
  */
 function isLoginFormText(text: string): boolean {
   const loginPatterns = [
-    'Email o teléfono',
-    'Contraseña',
-    'Mostrar',
-    '¿Has olvidado tu contraseña?',
-    'Iniciar sesión',
-    'Iniciar sesión con',
-    'Iniciar sesión con el email',
-    'Crea tu cuenta gratuita',
-    'Únete ahora',
-    '¿Estás empezando a usar LinkedIn?',
+    /^Email o teléfono$/i,
+    /^Contraseña$/i,
+    /^Mostrar$/i,
+    /^¿Has olvidado tu contraseña\?$/i,
+    /^Iniciar sesión$/i,
+    /^Iniciar sesión con el email$/i,
+    /^Crea tu cuenta gratuita$/i,
+    /^Únete ahora$/i,
+    /^¿Estás empezando a usar LinkedIn\?$/i,
+    /^o$/i, // La línea que solo dice "o" entre opciones de login
   ];
   
-  return loginPatterns.some(pattern => text.includes(pattern));
+  return loginPatterns.some(pattern => pattern.test(text.trim()));
 }
 
 /**
@@ -269,6 +293,45 @@ function convertLineToHtml(text: string): string {
   text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="text-blue-600 underline">$1</a>');
   
   return `<p>${text}</p>`;
+}
+
+/**
+ * Extrae contenido fallback cuando LinkedIn bloquea con login
+ * Busca texto útil antes del muro de login
+ */
+function extractFallbackContent(text: string, authorName: string): string | null {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+  const paragraphs: string[] = [];
+  
+  for (const line of lines) {
+    // Saltar el título repetido
+    if (line.includes('===============')) continue;
+    if (/^={3,}$/.test(line)) continue;
+    if (/^-{3,}$/.test(line)) continue;
+    
+    // Saltar autor
+    if (line === authorName || line === `### ${authorName}`) continue;
+    
+    // Saltar imágenes
+    if (line.startsWith('![')) continue;
+    
+    // Saltar líneas muy cortas
+    if (line.length < 20) continue;
+    
+    // Saltar URLs
+    if (line.match(/^https?:\/\//)) continue;
+    
+    // Saltar ruido de UI
+    if (isLinkedInNoise(line)) continue;
+    
+    // Si llegamos aquí, es contenido potencial
+    paragraphs.push(convertLineToHtml(line));
+    
+    // Limitar a los primeros párrafos relevantes
+    if (paragraphs.length >= 3) break;
+  }
+  
+  return paragraphs.length > 0 ? paragraphs.join('\n') : null;
 }
 
 /**
