@@ -1,6 +1,10 @@
 import { ArrowRight, AlertTriangle, FileText } from 'lucide-react';
+import { useState, useRef } from 'react';
 
 export default function Hero() {
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   const scrollToSection = (href: string) => {
     const element = document.querySelector(href);
     if (element) {
@@ -17,23 +21,29 @@ export default function Hero() {
       >
         {/* Contenedor del video - ocupa todo el espacio */}
         <div className="absolute inset-0">
-          {/* Imagen de fallback */}
+          {/* Imagen de fallback - solo visible hasta que el video cargue */}
           <div 
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-500"
             style={{ 
               backgroundImage: `url('./images/1.png')`,
+              zIndex: 0,
+              opacity: videoLoaded ? 0 : 1,
             }}
           />
           
           {/* Video */}
           <video
+            ref={videoRef}
             autoPlay
             loop
             muted
             playsInline
             preload="auto"
+            poster="./images/1.png"
             className="absolute inset-0 w-full h-full object-cover"
             style={{ zIndex: 1 }}
+            onLoadedData={() => setVideoLoaded(true)}
+            onCanPlay={() => setVideoLoaded(true)}
           >
             <source src="./videos/video1.mp4" type="video/mp4" />
           </video>
