@@ -26,6 +26,11 @@ export const auth = getAuth(app);
 // Proveedor de Google
 const googleProvider = new GoogleAuthProvider();
 
+// Configurar el proveedor de Google
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
+
 // Funciones de autenticación
 export const loginWithEmail = (email: string, password: string) => {
   return signInWithEmailAndPassword(auth, email, password);

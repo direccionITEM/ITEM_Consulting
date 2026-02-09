@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Lock } from 'lucide-react';
+import { Menu, X, Lock, Eye, EyeOff } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,7 @@ interface LayoutProps {
   children: React.ReactNode;
   isAuthenticated: boolean;
   onLogin: (email: string, password: string) => Promise<boolean>;
-  onLoginGoogle: () => Promise<boolean>;
+  onLoginGoogle: () => Promise<{ success: boolean; error?: string }>;
   onLogout: () => void;
 }
 
@@ -35,6 +35,7 @@ export default function Layout({ children, isAuthenticated, onLogin, onLoginGoog
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
   const location = useLocation();
 
@@ -283,13 +284,24 @@ export default function Layout({ children, isAuthenticated, onLogin, onLoginGoog
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Contraseña
               </label>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Contraseña"
-                required
-              />
+              <div className="relative">
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Contraseña"
+                  required
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
             {loginError && (
               <p className="text-red-500 text-sm">{loginError}</p>
@@ -318,13 +330,13 @@ export default function Layout({ children, isAuthenticated, onLogin, onLoginGoog
               className="w-full flex items-center justify-center gap-2 border-gray-300 hover:bg-gray-50"
               onClick={async () => {
                 setLoginError('');
-                const success = await onLoginGoogle();
-                if (success) {
+                const result = await onLoginGoogle();
+                if (result.success) {
                   setShowLoginDialog(false);
                   setEmail('');
                   setPassword('');
                 } else {
-                  setLoginError('Error al iniciar sesión con Google');
+                  setLoginError(result.error || 'Error al iniciar sesión con Google');
                 }
               }}
             >

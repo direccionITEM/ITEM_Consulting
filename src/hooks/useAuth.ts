@@ -2424,7 +2424,7 @@ export function useAuth() {
     'direccion@itemconsulting.es'
   ];
 
-  const loginGoogle = useCallback(async (): Promise<boolean> => {
+  const loginGoogle = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     try {
       const result = await loginWithGoogle();
       const userEmail = result.user.email;
@@ -2434,14 +2434,32 @@ export function useAuth() {
         // Si no está autorizado, cerrar sesión inmediatamente
         await logoutUser();
         console.error('Correo no autorizado:', userEmail);
-        alert('Este correo no tiene permiso para acceder. Contacta al administrador.');
-        return false;
+        return { 
+          success: false, 
+          error: 'Este correo no tiene permiso para acceder. Contacta al administrador.' 
+        };
       }
       
-      return true;
-    } catch (error) {
+      return { success: true };
+    } catch (error: any) {
       console.error('Error de login con Google:', error);
-      return false;
+      
+      // Mensajes de error específicos
+      let errorMessage = 'Error al iniciar sesión con Google';
+      
+      if (error.code === 'auth/popup-blocked') {
+        errorMessage = 'El popup fue bloqueado. Por favor, permite ventanas emergentes para este sitio.';
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'Ventana cerrada antes de completar el inicio de sesión.';
+      } else if (error.code === 'auth/unauthorized-domain') {
+        errorMessage = 'Este dominio no está autorizado. Agrega el dominio en Firebase Console > Authentication > Settings > Authorized domains.';
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        errorMessage = 'Operación cancelada. Solo se permite un popup a la vez.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      return { success: false, error: errorMessage };
     }
   }, []);
 
