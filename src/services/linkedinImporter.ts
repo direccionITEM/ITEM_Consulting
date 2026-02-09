@@ -61,6 +61,23 @@ const LINKEDIN_NOISE_PATTERNS = [
   '¿Estás empezando a usar LinkedIn?',
   'Fecha de publicación:',
   'Show more',
+  // Nuevos patrones basados en las capturas
+  '===',
+  '!Image',
+  'Image:',
+  'Image 2:',
+  'Markdown Content:',
+  'URL Source:',
+  'Title:',
+  'Al hacer clic en «Continuar»',
+  'Continuar',
+  '[Condiciones de uso]',
+  '[Política de privacidad]',
+  '[Política de cookies]',
+  '[Pasar al contenido principal]',
+  'Fecha de publicación',
+  '### Roberto José Liñán Ruiz', // Esto va al autor, no al contenido
+  'Roberto José Liñán Ruiz', // Nombre del autor
 ];
 
 // Patrones regex para limpiar contenido
@@ -69,6 +86,9 @@ const CLEANUP_PATTERNS = [
   /\[([^\]]+)\]\([^)]+\)/g,     // Links markdown [text](url) -> conservar solo texto
   /^\s*[-*]\s*/gm,              // Listas mal formadas al inicio de línea
   /\n{3,}/g,                     // Múltiples saltos de línea
+  /={5,}/g,                      // Separadores de línea como =====
+  /!Image \d+:[^\n]*/g,         // !Image 2: Movilidad sostenible...
+  /Image \d+:[^\n]*/g,          // Image 2: ...
 ];
 
 /**
@@ -81,13 +101,27 @@ function cleanLinkedInContent(text: string): string {
   let skipUntilNextSection = false;
   
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
+    let line = lines[i].trim();
     
     // Saltar líneas vacías al inicio
     if (!inArticleContent && line === '') continue;
     
+    // Detectar líneas que son solo separadores visuales
+    if (/^={3,}$/.test(line) || /^-{3,}$/.test(line)) continue;
+    
+    // Detectar líneas que contienen markdown de imágenes
+    if (line.includes('!Image') || line.match(/^!\[.*\]\(/)) continue;
+    
+    // Detectar líneas que parecen headers de jina.ai
+    if (line.match(/^URL Source:/) || line.match(/^Markdown Content:/) || line.match(/^Title:/)) continue;
+    
     // Detectar inicio del contenido real del artículo (después del título y autor)
-    if (!inArticleContent && line.length > 50 && !isNoiseLine(line)) {
+    // El contenido real suele ser párrafos largos (>100 chars) o que no son ruido
+    if (!inArticleContent && line.length > 100 && !isNoiseLine(line)) {
+      inArticleContent = true;
+    }
+    // También aceptar líneas más cortas si ya hemos encontrado contenido bueno antes
+    if (!inArticleContent && cleanedLines.length > 0 && line.length > 20 && !isNoiseLine(line)) {
       inArticleContent = true;
     }
     
@@ -98,7 +132,8 @@ function cleanLinkedInContent(text: string): string {
       line.startsWith('LinkedIn ©') ||
       line.startsWith('Inicia sesión para ver') ||
       line === 'Show more' ||
-      line.startsWith('See all articles')
+      line.startsWith('See all articles') ||
+      line.includes('Al hacer clic en')
     )) {
       break;
     }
@@ -112,16 +147,26 @@ function cleanLinkedInContent(text: string): string {
     // Filtrar líneas que son solo números (como contadores de likes)
     if (/^\d+$/.test(line)) continue;
     
+    // Filtrar líneas que parecen URLs de LinkedIn
+    if (line.match(/^https?:\/\/.*linkedin\.com/)) continue;
+    
     cleanedLines.push(line);
   }
   
   let cleaned = cleanedLines.join('\n\n');
   
   // Aplicar patrones de limpieza regex
-  cleaned = cleaned.replace(CLEANUP_PATTERNS[0], ''); // Imágenes
-  cleaned = cleaned.replace(CLEANUP_PATTERNS[1], '$1'); // Links -> texto
-  cleaned = cleaned.replace(CLEANUP_PATTERNS[2], ''); // Listas mal formadas
-  cleaned = cleaned.replace(CLEANUP_PATTERNS[3], '\n\n'); // Múltiples saltos
+  CLEANUP_PATTERNS.forEach((pattern, index) => {
+    if (index === 1) {
+      // Para el patrón de links, mantener solo el texto
+      cleaned = cleaned.replace(pattern, '$1');
+    } else {
+      cleaned = cleaned.replace(pattern, '');
+    }
+  });
+  
+  // Limpiar múltiples saltos de línea
+  cleaned = cleaned.replace(/\n{4,}/g, '\n\n\n');
   
   return cleaned.trim();
 }
@@ -142,21 +187,32 @@ function isNoiseLine(line: string): boolean {
  * Extrae información del autor del contenido
  */
 function extractAuthorInfo(lines: string[]): { author: string; authorLineIndex: number } {
-  for (let i = 0; i < Math.min(lines.length, 20); i++) {
+  // Buscar el nombre del autor en las primeras líneas
+  for (let i = 0; i < Math.min(lines.length, 30); i++) {
     const line = lines[i];
-    // Buscar línea que parezca un nombre de autor (no URL, no UI element)
+    
+    // Buscar el patrón específico de nombre de autor en LinkedIn Pulse
+    // Ejemplo: "Roberto José Liñán Ruiz" seguido de "Seguir" o similar
     if (line && 
-        line.length > 3 && 
-        line.length < 100 &&
+        line.length > 10 && 
+        line.length < 60 &&
         !line.includes('http') &&
         !line.includes('LinkedIn') &&
         !line.includes('Artículos') &&
         !line.includes('Fecha') &&
-        line.match(/[A-Z][a-z]+/) // Tiene al menos una palabra capitalizada
+        !line.includes('Title:') &&
+        !line.includes('URL Source:') &&
+        !line.includes('!Image') &&
+        line.match(/^[A-Z][a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/) // Solo letras y espacios, empieza con mayúscula
     ) {
-      // Verificar que la siguiente línea no sea "Seguir" o similar
+      // Verificar que la siguiente línea tenga "Seguir", "###" o similar (indica autor)
       const nextLine = lines[i + 1];
-      if (nextLine && (nextLine.includes('Seguir') || nextLine.includes('Fecha de publicación'))) {
+      if (nextLine && (
+          nextLine.includes('Seguir') || 
+          nextLine.includes('Fecha de publicación') ||
+          nextLine.startsWith('###') ||
+          nextLine.includes('aceptas las')
+      )) {
         return { author: line.trim(), authorLineIndex: i };
       }
     }
