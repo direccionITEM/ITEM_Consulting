@@ -1,9 +1,21 @@
 import { ArrowRight, AlertTriangle, FileText } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 export default function Hero() {
-  const [videoLoaded, setVideoLoaded] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const [videoError, setVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    // Intentar reproducir el video cuando el componente se monte
+    const video = videoRef.current;
+    if (video) {
+      video.play().catch(() => {
+        // Autoplay bloqueado, mostrar imagen
+        setVideoError(true);
+      });
+    }
+  }, []);
 
   const scrollToSection = (href: string) => {
     const element = document.querySelector(href);
@@ -19,40 +31,51 @@ export default function Hero() {
         className="relative flex-1 flex items-center"
         style={{ minHeight: '600px' }}
       >
-        {/* Contenedor del video - ocupa todo el espacio */}
-        <div className="absolute inset-0">
-          {/* Imagen de fallback - solo visible hasta que el video cargue */}
-          <div 
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-500"
-            style={{ 
-              backgroundImage: `url('./images/1.png')`,
-              zIndex: 0,
-              opacity: videoLoaded ? 0 : 1,
-            }}
-          />
+        {/* Contenedor del video/imagen de fondo */}
+        <div className="absolute inset-0 overflow-hidden">
           
-          {/* Video */}
-          <video
-            ref={videoRef}
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-            poster="./images/1.png"
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ zIndex: 1 }}
-            onLoadedData={() => setVideoLoaded(true)}
-            onCanPlay={() => setVideoLoaded(true)}
-          >
-            <source src="./videos/video1.mp4" type="video/mp4" />
-          </video>
+          {/* Video - solo renderizado cuando está listo */}
+          {!videoError && (
+            <video
+              ref={videoRef}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
+              poster="/images/1.png"
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
+                showVideo ? 'opacity-100' : 'opacity-0'
+              }`}
+              onLoadedData={() => {
+                console.log('Video cargado correctamente');
+                setShowVideo(true);
+              }}
+              onCanPlay={() => {
+                setShowVideo(true);
+              }}
+              onError={(e) => {
+                console.error('Error cargando video:', e);
+                setVideoError(true);
+              }}
+            >
+              <source src="/videos/video1.mp4" type="video/mp4" />
+              Tu navegador no soporta videos HTML5.
+            </video>
+          )}
+          
+          {/* Imagen de fallback - visible cuando el video no carga o está cargando */}
+          {(!showVideo || videoError) && (
+            <div 
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+              style={{ 
+                backgroundImage: `url('/images/1.png')`,
+              }}
+            />
+          )}
           
           {/* Overlay oscuro */}
-          <div 
-            className="hero-overlay absolute inset-0"
-            style={{ zIndex: 2 }}
-          />
+          <div className="hero-overlay absolute inset-0" />
         </div>
 
         {/* Contenido del Hero */}
