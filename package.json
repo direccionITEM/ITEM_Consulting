@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npx vite",
-    "build": "npx --yes vite build",
+    "dev": "node --experimental-vm-modules node_modules/vite/bin/vite.js",
+    "build": "node --experimental-vm-modules node_modules/vite/bin/vite.js build",
     "lint": "eslint .",
-    "preview": "npx vite preview"
+    "preview": "node --experimental-vm-modules node_modules/vite/bin/vite.js preview"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
