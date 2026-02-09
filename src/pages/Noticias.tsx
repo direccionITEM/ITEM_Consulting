@@ -41,6 +41,8 @@ export default function Noticias({
     date: new Date().toISOString().split('T')[0],
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const { login, loginGoogle } = useAuth();
 
   useEffect(() => {
@@ -72,17 +74,46 @@ export default function Noticias({
 
   const handleAddNews = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await onAddNews(newItem, selectedImage || undefined);
-    if (success) {
-      setShowAddDialog(false);
-      setNewItem({
-        title: '',
-        excerpt: '',
-        content: '',
-        imageUrl: '',
-        date: new Date().toISOString().split('T')[0],
-      });
-      setSelectedImage(null);
+    setIsSubmitting(true);
+    setSubmitError('');
+    
+    try {
+      // Validar campos requeridos
+      if (!newItem.title.trim()) {
+        setSubmitError('El título es obligatorio');
+        setIsSubmitting(false);
+        return;
+      }
+      if (!newItem.excerpt.trim()) {
+        setSubmitError('El resumen es obligatorio');
+        setIsSubmitting(false);
+        return;
+      }
+      if (!newItem.content.trim()) {
+        setSubmitError('El contenido es obligatorio');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      const success = await onAddNews(newItem, selectedImage || undefined);
+      if (success) {
+        setShowAddDialog(false);
+        setNewItem({
+          title: '',
+          excerpt: '',
+          content: '',
+          imageUrl: '',
+          date: new Date().toISOString().split('T')[0],
+        });
+        setSelectedImage(null);
+      } else {
+        setSubmitError('Error al guardar la noticia. Verifica que estés autenticado.');
+      }
+    } catch (error: any) {
+      console.error('Error adding news:', error);
+      setSubmitError(error.message || 'Error inesperado al guardar');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -90,24 +121,36 @@ export default function Noticias({
     e.preventDefault();
     if (!editingNews) return;
     
-    const success = await onUpdateNews(
-      editingNews.id,
-      {
-        title: editingNews.title,
-        excerpt: editingNews.excerpt,
-        content: editingNews.content,
-        imageUrl: editingNews.imageUrl,
-        date: editingNews.date,
-      },
-      selectedImage || undefined
-    );
+    setIsSubmitting(true);
+    setSubmitError('');
     
-    if (success) {
-      setShowEditDialog(false);
-      setEditingNews(null);
-      setSelectedImage(null);
+    try {
+      const success = await onUpdateNews(
+        editingNews.id,
+        {
+          title: editingNews.title,
+          excerpt: editingNews.excerpt,
+          content: editingNews.content,
+          imageUrl: editingNews.imageUrl,
+          date: editingNews.date,
+        },
+        selectedImage || undefined
+      );
+      
+      if (success) {
+        setShowEditDialog(false);
+        setEditingNews(null);
+        setSelectedImage(null);
+      } else {
+        setSubmitError('Error al actualizar la noticia');
+      }
+    } catch (error: any) {
+      console.error('Error updating news:', error);
+      setSubmitError(error.message || 'Error inesperado al actualizar');
+    } finally {
+      setIsSubmitting(false);
     }
-  };
+  }
 
   const handleDelete = async (id: string) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta noticia?')) {
@@ -118,6 +161,7 @@ export default function Noticias({
   const startEdit = (item: NewsItem) => {
     setEditingNews(item);
     setSelectedImage(null);
+    setSubmitError('');
     setShowEditDialog(true);
   };
 
@@ -384,11 +428,15 @@ export default function Noticias({
                 />
               </p>
             </div>
+            {submitError && (
+              <p className="text-red-500 text-sm">{submitError}</p>
+            )}
             <Button
               type="submit"
               className="w-full bg-item-blue hover:bg-item-blue/90 text-white"
+              disabled={isSubmitting}
             >
-              Guardar noticia
+              {isSubmitting ? 'Guardando...' : 'Guardar noticia'}
             </Button>
           </form>
         </DialogContent>
@@ -464,20 +512,25 @@ export default function Noticias({
                   Imagen actual: {editingNews.imageUrl}
                 </p>
               </div>
+              {submitError && (
+                <p className="text-red-500 text-sm">{submitError}</p>
+              )}
               <div className="flex gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   className="flex-1"
                   onClick={() => setShowEditDialog(false)}
+                  disabled={isSubmitting}
                 >
                   Cancelar
                 </Button>
                 <Button
                   type="submit"
                   className="flex-1 bg-item-blue hover:bg-item-blue/90 text-white"
+                  disabled={isSubmitting}
                 >
-                  Guardar cambios
+                  {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
                 </Button>
               </div>
             </form>

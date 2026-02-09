@@ -42,6 +42,8 @@ export default function Proyectos({
     date: new Date().toISOString().split('T')[0],
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const { login, loginGoogle } = useAuth();
 
   useEffect(() => {
@@ -73,18 +75,47 @@ export default function Proyectos({
 
   const handleAddProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await onAddProject(newProject, selectedImage || undefined);
-    if (success) {
-      setShowAddDialog(false);
-      setNewProject({
-        title: '',
-        description: '',
-        content: '',
-        imageUrl: '',
-        category: '',
-        date: new Date().toISOString().split('T')[0],
-      });
-      setSelectedImage(null);
+    setIsSubmitting(true);
+    setSubmitError('');
+    
+    try {
+      // Validar campos requeridos
+      if (!newProject.title.trim()) {
+        setSubmitError('El título es obligatorio');
+        setIsSubmitting(false);
+        return;
+      }
+      if (!newProject.description.trim()) {
+        setSubmitError('La descripción es obligatoria');
+        setIsSubmitting(false);
+        return;
+      }
+      if (!newProject.content.trim()) {
+        setSubmitError('El contenido es obligatorio');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      const success = await onAddProject(newProject, selectedImage || undefined);
+      if (success) {
+        setShowAddDialog(false);
+        setNewProject({
+          title: '',
+          description: '',
+          content: '',
+          imageUrl: '',
+          category: '',
+          date: new Date().toISOString().split('T')[0],
+        });
+        setSelectedImage(null);
+      } else {
+        setSubmitError('Error al guardar el proyecto. Verifica que estés autenticado.');
+      }
+    } catch (error: any) {
+      console.error('Error adding project:', error);
+      setSubmitError(error.message || 'Error inesperado al guardar');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -92,23 +123,35 @@ export default function Proyectos({
     e.preventDefault();
     if (!editingProject) return;
     
-    const success = await onUpdateProject(
-      editingProject.id,
-      {
-        title: editingProject.title,
-        description: editingProject.description,
-        content: editingProject.content,
-        imageUrl: editingProject.imageUrl,
-        category: editingProject.category,
-        date: editingProject.date,
-      },
-      selectedImage || undefined
-    );
+    setIsSubmitting(true);
+    setSubmitError('');
     
-    if (success) {
-      setShowEditDialog(false);
-      setEditingProject(null);
-      setSelectedImage(null);
+    try {
+      const success = await onUpdateProject(
+        editingProject.id,
+        {
+          title: editingProject.title,
+          description: editingProject.description,
+          content: editingProject.content,
+          imageUrl: editingProject.imageUrl,
+          category: editingProject.category,
+          date: editingProject.date,
+        },
+        selectedImage || undefined
+      );
+      
+      if (success) {
+        setShowEditDialog(false);
+        setEditingProject(null);
+        setSelectedImage(null);
+      } else {
+        setSubmitError('Error al actualizar el proyecto');
+      }
+    } catch (error: any) {
+      console.error('Error updating project:', error);
+      setSubmitError(error.message || 'Error inesperado al actualizar');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -121,6 +164,7 @@ export default function Proyectos({
   const startEdit = (project: Project) => {
     setEditingProject(project);
     setSelectedImage(null);
+    setSubmitError('');
     setShowEditDialog(true);
   };
 
@@ -420,11 +464,15 @@ export default function Proyectos({
                 />
               </p>
             </div>
+            {submitError && (
+              <p className="text-red-500 text-sm">{submitError}</p>
+            )}
             <Button
               type="submit"
               className="w-full bg-item-blue hover:bg-item-blue/90 text-white"
+              disabled={isSubmitting}
             >
-              Guardar proyecto
+              {isSubmitting ? 'Guardando...' : 'Guardar proyecto'}
             </Button>
           </form>
         </DialogContent>
@@ -511,20 +559,25 @@ export default function Proyectos({
                   Imagen actual: {editingProject.imageUrl}
                 </p>
               </div>
+              {submitError && (
+                <p className="text-red-500 text-sm">{submitError}</p>
+              )}
               <div className="flex gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   className="flex-1"
                   onClick={() => setShowEditDialog(false)}
+                  disabled={isSubmitting}
                 >
                   Cancelar
                 </Button>
                 <Button
                   type="submit"
                   className="flex-1 bg-item-blue hover:bg-item-blue/90 text-white"
+                  disabled={isSubmitting}
                 >
-                  Guardar cambios
+                  {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
                 </Button>
               </div>
             </form>
