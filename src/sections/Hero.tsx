@@ -1,5 +1,4 @@
 import { ArrowRight, AlertTriangle, FileText } from 'lucide-react';
-import { useRef, useEffect, useState } from 'react';
 
 export default function Hero() {
   const scrollToSection = (href: string) => {
@@ -9,62 +8,28 @@ export default function Hero() {
     }
   };
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoLoaded, setVideoLoaded] = useState(false);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (video) {
-      video.addEventListener('loadeddata', () => {
-        console.log('Video cargado');
-        setVideoLoaded(true);
-      });
-      video.addEventListener('error', (e) => {
-        console.error('Error video:', e);
-      });
-      video.play().catch(err => console.log('Autoplay bloqueado:', err));
-    }
-  }, []);
-
   return (
     <section id="inicio" className="relative min-h-screen flex flex-col">
       {/* Hero Background */}
       <div className="relative flex-1 flex items-center overflow-hidden">
         
-        {/* CAPA 1: Imagen de fallback (siempre visible como fondo) */}
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=1920&h=1080&fit=crop')`,
-            zIndex: 0
-          }}
-        />
-        
-        {/* CAPA 2: Video (encima de la imagen) */}
+        {/* Video de fondo */}
         <video
-          ref={videoRef}
           autoPlay
           loop
           muted
           playsInline
           preload="auto"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ 
-            zIndex: 1,
-            opacity: videoLoaded ? 1 : 0,
-            transition: 'opacity 0.5s ease-in-out'
-          }}
+          poster="./images/1.png"
+          className="absolute inset-0 w-full h-full object-cover z-[1]"
         >
           <source src="./videos/video1.mp4" type="video/mp4" />
         </video>
         
-        {/* CAPA 3: Overlay oscuro (encima de todo) */}
-        <div 
-          className="hero-overlay absolute inset-0" 
-          style={{ zIndex: 2 }}
-        />
+        {/* Overlay oscuro */}
+        <div className="hero-overlay absolute inset-0 z-[2]" />
 
-        {/* CAPA 4: Contenido (encima del overlay) */}
+        {/* Contenido */}
         <div className="container-custom relative z-10 py-32">
           <div className="max-w-3xl animate-fade-in">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
