@@ -1,41 +1,6 @@
 import { ArrowRight, AlertTriangle, FileText } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
 
 export default function Hero() {
-  const [showVideo, setShowVideo] = useState(false);
-  const [videoError, setVideoError] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  
-  // Determinar la ruta base del video según el entorno
-  const getVideoPath = () => {
-    // En desarrollo local, usar ruta relativa
-    if (import.meta.env.DEV) {
-      return '/videos/video1.mp4';
-    }
-    // En producción, ruta absoluta
-    return '/videos/video1.mp4';
-  };
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    
-    // Intentar cargar el video manualmente
-    video.src = getVideoPath();
-    video.load();
-    
-    const playVideo = async () => {
-      try {
-        await video.play();
-        console.log('Video reproduciendose');
-      } catch (err) {
-        console.log('Autoplay bloqueado, esperando interaccion');
-      }
-    };
-    
-    playVideo();
-  }, []);
-
   const scrollToSection = (href: string) => {
     const element = document.querySelector(href);
     if (element) {
@@ -53,40 +18,18 @@ export default function Hero() {
         {/* Contenedor de fondo */}
         <div className="absolute inset-0 overflow-hidden">
           
-          {/* Video */}
+          {/* Video - SIN COMPLICACIONES */}
           <video
-            ref={videoRef}
             autoPlay
             loop
             muted
             playsInline
             preload="auto"
-            className={`absolute inset-0 w-full h-full object-cover ${
-              showVideo ? 'opacity-100' : 'opacity-0'
-            }`}
-            style={{ transition: 'opacity 0.5s ease' }}
-            onLoadedData={() => {
-              console.log('Video cargado');
-              setShowVideo(true);
-            }}
-            onCanPlay={() => {
-              setShowVideo(true);
-            }}
-            onError={(e) => {
-              console.error('Error video:', e);
-              setVideoError(true);
-            }}
+            className="absolute inset-0 w-full h-full object-cover"
+            poster="images/1.png"
           >
-            <source src={getVideoPath()} type="video/mp4" />
+            <source src="videos/video1.mp4" type="video/mp4" />
           </video>
-          
-          {/* Fallback - visible cuando video no carga */}
-          {(!showVideo || videoError) && (
-            <div 
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-              style={{ backgroundImage: `url('/images/1.png')` }}
-            />
-          )}
           
           {/* Overlay */}
           <div className="hero-overlay absolute inset-0" />

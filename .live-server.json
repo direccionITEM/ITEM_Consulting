@@ -1,0 +1,13 @@
+{
+  "port": 5500,
+  "root": "./dist",
+  "open": false,
+  "file": "index.html",
+  "mount": [
+    ["/videos", "./dist/videos"],
+    ["/images", "./dist/images"]
+  ],
+  "mime": {
+    "mp4": "video/mp4"
+  }
+}
