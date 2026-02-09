@@ -133,13 +133,11 @@ export default function Proyectos({
                   )}
                 </div>
                 <div className="p-6">
-                  <p className="text-item-blue text-sm font-medium mb-2">
-                    {new Date(project.date).toLocaleDateString('es-ES', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </p>
+                  {project.category && (
+                    <p className="text-item-blue text-sm font-medium mb-2">
+                      {project.category}
+                    </p>
+                  )}
                   <h3 className="text-xl font-bold text-gray-900 mb-3">{project.title}</h3>
                   <p className="text-gray-600 text-sm line-clamp-3">{project.description}</p>
                 </div>

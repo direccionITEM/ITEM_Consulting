@@ -73,7 +73,6 @@ export default function Proyectos({
           content: '',
           imageUrl: '',
           category: '',
-          date: new Date().toISOString().split('T')[0],
         });
         setSelectedImage(null);
       } else {
@@ -221,10 +220,13 @@ export default function Proyectos({
                   )}
                 </div>
                 <div className="p-6">
-                  <div className="flex items-center gap-2 text-gray-500 text-sm mb-3">
-                    <Calendar size={16} />
-                    <span>{new Date(project.date).toLocaleDateString('es-ES')}</span>
-                  </div>
+                  {project.category && (
+                    <div className="flex items-center gap-2 text-item-blue text-sm mb-3">
+                      <span className="px-3 py-1 bg-item-blue/10 rounded-full font-medium">
+                        {project.category}
+                      </span>
+                    </div>
+                  )}
                   <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
                     {project.title}
                   </h3>

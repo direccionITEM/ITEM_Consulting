@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Calendar, ArrowLeft, Tag } from 'lucide-react';
+import { ArrowLeft, Tag } from 'lucide-react';
 import type { Project } from '@/types';
 
 interface ProyectoDetalleProps {
@@ -67,20 +67,10 @@ export default function ProyectoDetalle({ projects }: ProyectoDetalleProps) {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Meta info */}
           <div className="flex flex-wrap items-center gap-6 text-gray-500 mb-8 pb-8 border-b border-gray-200">
-            <div className="flex items-center gap-2">
-              <Calendar size={18} />
-              <span>
-                {new Date(project.date).toLocaleDateString('es-ES', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </span>
-            </div>
             {project.category && (
               <div className="flex items-center gap-2">
                 <Tag size={18} />
-                <span>{project.category}</span>
+                <span className="text-item-blue font-medium">{project.category}</span>
               </div>
             )}
           </div>

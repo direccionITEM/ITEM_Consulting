@@ -7,7 +7,7 @@ export interface Project {
   content?: string;
   imageUrl: string;
   category: string;
-  date: string;
+  date?: string;
 }
 
 export interface NewsItem {
