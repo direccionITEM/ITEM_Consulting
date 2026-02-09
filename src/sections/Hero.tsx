@@ -25,12 +25,12 @@ export default function Hero() {
             loop
             muted
             playsInline
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover z-[1]"
             poster="https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=1920&h=1080&fit=crop"
           >
             <source src="/videos/video1.mp4" type="video/mp4" />
           </video>
-          <div className="hero-overlay absolute inset-0" />
+          <div className="hero-overlay absolute inset-0 z-[2]" />
         </div>
 
         {/* Content */}
