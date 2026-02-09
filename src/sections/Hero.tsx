@@ -1,5 +1,5 @@
 import { ArrowRight, AlertTriangle, FileText } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
 export default function Hero() {
   const scrollToSection = (href: string) => {
@@ -9,15 +9,23 @@ export default function Hero() {
     }
   };
 
-  const [videoError, setVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoLoaded, setVideoLoaded] = useState(false);
 
   useEffect(() => {
-    // Intentar reproducir el video manualmente si el autoplay falla
-    if (videoRef.current) {
-      videoRef.current.play().catch(() => {
-        // El autoplay fue bloqueado o el video falló
-        setVideoError(true);
+    const video = videoRef.current;
+    if (video) {
+      video.addEventListener('loadeddata', () => {
+        console.log('Video cargado correctamente');
+        setVideoLoaded(true);
+      });
+      video.addEventListener('error', (e) => {
+        console.error('Error cargando el video:', e);
+      });
+      
+      // Intentar reproducir
+      video.play().catch(err => {
+        console.log('Autoplay bloqueado o error:', err);
       });
     }
   }, []);
@@ -27,28 +35,38 @@ export default function Hero() {
       {/* Hero Background */}
       <div className="relative flex-1 flex items-center">
         {/* Background Video con imagen fallback */}
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=1920&h=1080&fit=crop')`,
-          }}
-        >
-          {/* Video background - se muestra encima de la imagen si carga correctamente */}
-          {!videoError && (
-            <video
-              ref={videoRef}
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="absolute inset-0 w-full h-full object-cover z-[1]"
-              poster="https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=1920&h=1080&fit=crop"
-              onError={() => setVideoError(true)}
-            >
-              <source src="/videos/video1.mp4" type="video/mp4" />
-            </video>
-          )}
-          <div className="hero-overlay absolute inset-0 z-[2]" />
+        <div className="absolute inset-0">
+          {/* Imagen de fallback (detrás del video) */}
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: `url('https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=1920&h=1080&fit=crop')`,
+            }}
+          />
+          
+          {/* Video background */}
+          <video
+            ref={videoRef}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ 
+              zIndex: 1,
+              opacity: videoLoaded ? 1 : 0,
+              transition: 'opacity 0.5s ease-in-out'
+            }}
+          >
+            <source src="videos/video1.mp4" type="video/mp4" />
+          </video>
+          
+          {/* Overlay oscuro */}
+          <div 
+            className="hero-overlay absolute inset-0" 
+            style={{ zIndex: 2 }}
+          />
         </div>
 
         {/* Content */}
