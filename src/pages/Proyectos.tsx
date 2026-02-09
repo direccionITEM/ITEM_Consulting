@@ -130,7 +130,12 @@ export default function Proyectos({
     setShowEditDialog(true);
   };
 
-  const categories = [...new Set(projects.map(p => p.category))];
+  const categories = [...new Set(projects.map(p => p.category).filter(Boolean))];
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  
+  const filteredProjects = selectedCategory 
+    ? projects.filter(p => p.category === selectedCategory)
+    : projects;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -156,13 +161,25 @@ export default function Proyectos({
 
         {/* Categories Filter */}
         <div className="flex flex-wrap justify-center gap-4 mb-12">
-          <button className="px-6 py-2 bg-item-blue text-white rounded-full font-medium">
+          <button 
+            onClick={() => setSelectedCategory(null)}
+            className={`px-6 py-2 rounded-full font-medium transition-colors ${
+              selectedCategory === null 
+                ? 'bg-item-blue text-white' 
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+          >
             Todos
           </button>
           {categories.map((category) => (
             <button
               key={category}
-              className="px-6 py-2 bg-white text-gray-700 rounded-full font-medium hover:bg-gray-100 transition-colors"
+              onClick={() => setSelectedCategory(category)}
+              className={`px-6 py-2 rounded-full font-medium transition-colors ${
+                selectedCategory === category 
+                  ? 'bg-item-blue text-white' 
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
             >
               {category}
             </button>
@@ -177,7 +194,7 @@ export default function Proyectos({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {projects.map((project) => (
+            {filteredProjects.map((project) => (
               <div
                 key={project.id}
                 className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 group"
