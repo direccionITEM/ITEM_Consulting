@@ -12,9 +12,47 @@ export interface LinkedInPostData {
   author?: string;
 }
 
+// Elementos de UI/login de LinkedIn que deben ser filtrados
+const LINKEDIN_NOISE_PATTERNS = [
+  'Aceptar y unirse a LinkedIn',
+  'Al hacer clic en',
+  'aceptas las Condiciones de uso',
+  'Pasar al contenido principal',
+  'Unirse ahora',
+  'Iniciar sesión',
+  'Denunciar este artículo',
+  'Más artículos de',
+  'See all articles',
+  'Ver temas',
+  'Ver todo',
+  'Acerca de',
+  'Accesibilidad',
+  'Condiciones de uso',
+  'Política de privacidad',
+  'Política de cookies',
+  'Inicia sesión para ver más contenido',
+  'Crea tu cuenta gratuita',
+  '¿Has olvidado tu contraseña?',
+  '¿Estás empezando a usar LinkedIn?',
+  'Fecha de publicación:',
+  'Show more',
+  '===',
+  '!Image',
+  'Image:',
+  'Image 2:',
+  'Markdown Content:',
+  'URL Source:',
+  'Title:',
+  'Al hacer clic en «Continuar»',
+  'Continuar',
+  '[Condiciones de uso]',
+  '[Política de privacidad]',
+  '[Política de cookies]',
+  '[Pasar al contenido principal]',
+];
+
 /**
  * Extrae el contenido de una URL de LinkedIn usando jina.ai
- * jina.ai extrae el contenido limpio de artículos
  */
 export async function importFromLinkedIn(url: string): Promise<LinkedInPostData> {
   if (!url.includes('linkedin.com')) {
@@ -22,7 +60,6 @@ export async function importFromLinkedIn(url: string): Promise<LinkedInPostData>
   }
 
   try {
-    // Usar r.jina.ai/http:// para obtener HTML en lugar de markdown
     const cleanUrl = url.replace(/^https?:\/\//, '');
     const jinaUrl = `https://r.jina.ai/http://${cleanUrl}`;
     
@@ -30,7 +67,7 @@ export async function importFromLinkedIn(url: string): Promise<LinkedInPostData>
     
     const response = await fetch(jinaUrl, {
       headers: {
-        'Accept': 'text/html,application/xhtml+xml'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
       }
     });
     
@@ -38,86 +75,71 @@ export async function importFromLinkedIn(url: string): Promise<LinkedInPostData>
       throw new Error(`Error al acceder al contenido: ${response.status}`);
     }
     
-    const rawText = await response.text();
-    console.log('Raw response length:', rawText.length);
-    console.log('First 500 chars:', rawText.substring(0, 500));
+    const text = await response.text();
+    console.log('Response preview:', text.substring(0, 800));
     
-    // Parsear la respuesta de jina.ai
-    // El formato es: "Title: ...\nURL Source: ...\nMarkdown Content: ..."
-    let title = '';
-    let author = '';
-    let content = '';
-    let imageUrl = '/images/5.png';
+    // Parsear la respuesta
+    const lines = text.split('\n').map(l => l.trim());
     
     // Extraer título
-    const titleMatch = rawText.match(/Title:\s*(.+?)(?:\n|$)/);
-    if (titleMatch) {
-      title = titleMatch[1].replace(/\|?\s*LinkedIn$/i, '').trim();
+    let title = '';
+    const titleLine = lines.find(l => l.startsWith('Title:'));
+    if (titleLine) {
+      title = titleLine.replace('Title:', '').trim().replace(/\|?\s*LinkedIn$/i, '');
     }
     
-    // Extraer URL de imagen del contenido markdown
-    const imageMatch = rawText.match(/!\[.*?\]\((https:\/\/[^\)]+)\)/);
-    if (imageMatch && imageMatch[1]) {
-      imageUrl = imageMatch[1];
-      console.log('Found image in markdown:', imageUrl);
-    }
-    
-    // Extraer el contenido markdown
-    const contentMatch = rawText.match(/Markdown Content:\s*([\s\S]+?)(?=\n\n(?:https?:|\n*$)|$)/);
-    if (contentMatch) {
-      let markdownContent = contentMatch[1].trim();
-      
-      // Limpiar líneas de ruido conocidas
-      const lines = markdownContent.split('\n');
-      const cleanLines: string[] = [];
-      
-      for (const line of lines) {
-        const trimmed = line.trim();
-        
-        // Saltar líneas de UI/login
-        if (trimmed.includes('Aceptar y unirse a LinkedIn')) continue;
-        if (trimmed.includes('Al hacer clic en')) continue;
-        if (trimmed.includes('aceptas las Condiciones de uso')) continue;
-        if (trimmed.includes('Pasar al contenido principal')) continue;
-        if (trimmed.includes('Ver todo')) continue;
-        if (trimmed.includes('Ver temas')) continue;
-        if (trimmed.includes('Acerca de')) continue;
-        if (trimmed.includes('Condiciones de uso')) continue;
-        if (trimmed.includes('Política de privacidad')) continue;
-        if (trimmed.includes('Política de cookies')) continue;
-        if (trimmed.includes('Inicia sesión para ver')) continue;
-        if (trimmed.includes('Crea tu cuenta gratuita')) continue;
-        if (trimmed.includes('Más artículos de')) continue;
-        if (trimmed.includes('=== Initialize ===')) continue;
-        if (trimmed.startsWith('===')) continue;
-        if (trimmed.startsWith('!Image')) continue;
-        
-        // Detectar autor (línea antes de "###" o similar)
-        if (trimmed.startsWith('### ')) {
-          author = trimmed.replace('### ', '').trim();
-          continue;
-        }
-        
-        cleanLines.push(line);
+    // Extraer autor
+    let author = '';
+    for (let i = 0; i < Math.min(lines.length, 30); i++) {
+      const line = lines[i];
+      // Buscar patrón: "### Nombre Apellido" o línea que parezca nombre seguido de "Seguir"
+      if (line.startsWith('### ')) {
+        author = line.replace('### ', '').trim();
+        break;
       }
-      
-      // Convertir markdown a HTML
-      content = markdownToHtml(cleanLines.join('\n'));
-      
-      console.log('Clean content length:', content.length);
+      // O buscar nombre en línea con patrón específico
+      if (line.match(/^[A-Z][a-záéíóúÁÉÍÓÚñÑ]+\s+[A-Z][a-záéíóúÁÉÍÓÚñÑ]+/)) {
+        const nextLine = lines[i + 1];
+        if (nextLine && (nextLine.includes('Seguir') || nextLine.includes('Fecha'))) {
+          author = line;
+          break;
+        }
+      }
     }
     
-    // Si no hay título, usar el de la URL
-    if (!title) {
-      title = 'Artículo de LinkedIn';
+    // Encontrar imagen
+    let imageUrl = '/images/5.png';
+    
+    // 1. Buscar en el markdown de jina.ai
+    const imageMatch = text.match(/!\[.*?\]\((https:\/\/[^\)]+)\)/);
+    if (imageMatch) {
+      imageUrl = imageMatch[1];
+      console.log('Image from markdown:', imageUrl);
     }
     
-    // Generar excerpt del contenido limpio (sin HTML)
+    // 2. Si no, buscar con Open Graph
+    if (imageUrl === '/images/5.png') {
+      imageUrl = await fetchOpenGraphImage(url);
+    }
+    
+    // Extraer contenido - encontrar después de "Markdown Content:"
+    const markdownIndex = lines.findIndex(l => l === 'Markdown Content:');
+    let content = '';
+    
+    if (markdownIndex !== -1 && markdownIndex < lines.length - 1) {
+      const contentLines = lines.slice(markdownIndex + 1);
+      content = processContent(contentLines);
+    } else {
+      // Fallback: procesar todo
+      content = processContent(lines);
+    }
+    
+    // Generar excerpt
     const textContent = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
     const excerpt = textContent.substring(0, 200) + (textContent.length > 200 ? '...' : '');
     
     return {
-      title,
+      title: title || 'Artículo de LinkedIn',
       content,
       excerpt,
       imageUrl,
@@ -132,33 +154,135 @@ export async function importFromLinkedIn(url: string): Promise<LinkedInPostData>
 }
 
 /**
- * Convierte markdown básico a HTML preservando estructura
+ * Procesa las líneas de contenido y convierte a HTML
  */
-function markdownToHtml(text: string): string {
-  // Dividir en párrafos primero
-  const paragraphs = text.split('\n\n').filter(p => p.trim());
+function processContent(lines: string[]): string {
+  const paragraphs: string[] = [];
+  let currentParagraph: string[] = [];
   
-  return paragraphs.map(p => {
-    let html = p.trim();
+  const flushParagraph = () => {
+    if (currentParagraph.length > 0) {
+      const text = currentParagraph.join(' ').trim();
+      if (text) {
+        paragraphs.push(convertToHtml(text));
+      }
+      currentParagraph = [];
+    }
+  };
+  
+  for (const line of lines) {
+    const trimmed = line.trim();
     
     // Saltar líneas vacías
-    if (!html) return '';
+    if (!trimmed) {
+      flushParagraph();
+      continue;
+    }
     
-    // Convertir **texto** a <strong>
-    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    // Saltar líneas de ruido
+    if (isNoiseLine(trimmed)) continue;
     
-    // Convertir *texto* a <em>
-    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    // Saltar separadores
+    if (/^={3,}$/.test(trimmed) || /^-{3,}$/.test(trimmed)) {
+      flushParagraph();
+      continue;
+    }
     
-    // Convertir links [texto](url) a <a>
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline">$1</a>');
+    // Saltar imágenes markdown
+    if (trimmed.startsWith('![') || trimmed.startsWith('!Image')) continue;
     
-    // Convertir saltos de línea internos a <br>
-    html = html.replace(/\n/g, '<br>');
+    // Saltar headers de jina.ai
+    if (trimmed.match(/^(URL Source|Markdown Content|Title):/)) continue;
     
-    // Envolver en párrafo
-    return `<p>${html}</p>`;
-  }).join('\n');
+    // Saltar autor (ya lo extrajimos)
+    if (trimmed.startsWith('### ')) continue;
+    
+    // Saltar URLs de LinkedIn
+    if (trimmed.match(/^https?:\/\/.*linkedin\.com/)) continue;
+    
+    // Detectar fin del artículo
+    if (trimmed.startsWith('Más artículos de') ||
+        trimmed.startsWith('Ver temas') ||
+        trimmed.includes('Inicia sesión para ver') ||
+        trimmed.includes('Al hacer clic en')) {
+      break;
+    }
+    
+    currentParagraph.push(trimmed);
+  }
+  
+  flushParagraph();
+  
+  return paragraphs.join('\n');
+}
+
+/**
+ * Verifica si una línea es ruido
+ */
+function isNoiseLine(line: string): boolean {
+  if (!line) return true;
+  return LINKEDIN_NOISE_PATTERNS.some(pattern => 
+    line.includes(pattern) || line.toLowerCase().includes(pattern.toLowerCase())
+  );
+}
+
+/**
+ * Convierte markdown a HTML
+ */
+function convertToHtml(text: string): string {
+  // Convertir **texto** a <strong>
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Convertir *texto* a <em>
+  text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  // Convertir links
+  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="text-blue-600 underline">$1</a>');
+  // Envolver en párrafo
+  return `<p>${text}</p>`;
+}
+
+/**
+ * Intenta obtener la imagen Open Graph
+ */
+async function fetchOpenGraphImage(url: string): Promise<string> {
+  const proxies = [
+    (u: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+    (u: string) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+  ];
+  
+  for (const proxyFn of proxies) {
+    try {
+      const proxyUrl = proxyFn(url);
+      const response = await fetch(proxyUrl, { 
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        },
+        signal: AbortSignal.timeout(8000)
+      });
+      
+      if (!response.ok) continue;
+      
+      const html = await response.text();
+      
+      // Buscar og:image
+      const patterns = [
+        /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i,
+        /<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i,
+        /<meta[^>]*property=["']og:image:secure_url["'][^>]*content=["']([^"']+)["']/i,
+      ];
+      
+      for (const pattern of patterns) {
+        const match = html.match(pattern);
+        if (match && match[1]) {
+          console.log('Image from Open Graph:', match[1]);
+          return match[1];
+        }
+      }
+    } catch (e) {
+      continue;
+    }
+  }
+  
+  return '/images/5.png';
 }
 
 /**
