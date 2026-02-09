@@ -87,9 +87,8 @@ export default function NoticiaDetalle({ news }: NoticiaDetalleProps) {
 
           {/* Full Content */}
           {item.content ? (
-            <div className="prose prose-lg max-w-none ql-content-output">
+            <div className="rich-content">
               <div 
-                className="text-gray-700 leading-relaxed"
                 dangerouslySetInnerHTML={{ 
                   __html: item.content
                 }}
@@ -100,6 +99,55 @@ export default function NoticiaDetalle({ news }: NoticiaDetalleProps) {
               <p className="text-gray-600">Contenido detallado próximamente...</p>
             </div>
           )}
+          <style>{`
+            .rich-content {
+              color: #374151;
+              line-height: 1.75;
+              word-wrap: break-word;
+              overflow-wrap: break-word;
+            }
+            .rich-content p {
+              margin-bottom: 1rem;
+              max-width: 100%;
+            }
+            .rich-content h1, .rich-content h2, .rich-content h3,
+            .rich-content h4, .rich-content h5, .rich-content h6 {
+              font-weight: 700;
+              margin-top: 1.5rem;
+              margin-bottom: 0.75rem;
+              color: #111827;
+            }
+            .rich-content h1 { font-size: 1.875rem; }
+            .rich-content h2 { font-size: 1.5rem; }
+            .rich-content h3 { font-size: 1.25rem; }
+            .rich-content ul, .rich-content ol {
+              margin-left: 1.5rem;
+              margin-bottom: 1rem;
+            }
+            .rich-content li {
+              margin-bottom: 0.25rem;
+            }
+            .rich-content strong, .rich-content b {
+              font-weight: 700;
+              color: #111827;
+            }
+            .rich-content img {
+              max-width: 100%;
+              height: auto;
+              border-radius: 0.5rem;
+              margin: 1rem 0;
+            }
+            .rich-content a {
+              color: #0284c7;
+              text-decoration: underline;
+            }
+            .rich-content blockquote {
+              border-left: 4px solid #e5e7eb;
+              padding-left: 1rem;
+              margin: 1rem 0;
+              font-style: italic;
+            }
+          `}</style>
 
           {/* Back button */}
           <div className="mt-12 pt-8 border-t border-gray-200">
