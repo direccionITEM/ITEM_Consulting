@@ -31,8 +31,8 @@ export default function Footer() {
               ITEM<span className="font-light">Consulting</span>
             </div>
             <p className="text-gray-400 mb-6 max-w-md">
-              Ingeniería especializada en infraestructuras del transporte, economía y movilidad. 
-              Proporcionamos soluciones innovadoras para la planificación, gestión y análisis 
+              Ingeniería especializada en infraestructuras del transporte, economía y movilidad.
+              Proporcionamos soluciones innovadoras para la planificación, gestión y análisis
               de sistemas de transporte y movilidad urbana sostenible.
             </p>
             <div className="space-y-3">
@@ -48,11 +48,11 @@ export default function Footer() {
               </div>
               <div className="flex items-center gap-3 text-gray-400">
                 <Mail size={18} className="text-item-blue" />
-                <a 
-                  href="mailto:direccion@itemconsulting.es" 
+                <a
+                  href="mailto:informacion@itemconsulting.es"
                   className="hover:text-white transition-colors"
                 >
-                  direccion@itemconsulting.es
+                  informacion@itemconsulting.es
                 </a>
               </div>
             </div>

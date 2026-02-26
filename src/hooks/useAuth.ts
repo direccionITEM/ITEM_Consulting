@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { User, Project, NewsItem } from '@/types';
-import { 
-  loginWithEmail, 
-  loginWithGoogle, 
-  logoutUser, 
+import {
+  loginWithEmail,
+  loginWithGoogle,
+  logoutUser,
   onAuthChange,
   getProjects,
   getNews,
@@ -55,28 +55,28 @@ export function useAuth() {
   // Lista de correos autorizados para login con Google
   const ALLOWED_GOOGLE_EMAILS = [
     'rayengea@gmail.com',
-    'direccion@itemconsulting.es'
+    'informacion@itemconsulting.es'
   ];
 
   const loginGoogle = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     try {
       const result = await loginWithGoogle();
       const userEmail = result.user.email;
-      
+
       if (userEmail && !ALLOWED_GOOGLE_EMAILS.includes(userEmail)) {
         await logoutUser();
-        return { 
-          success: false, 
-          error: 'Este correo no tiene permiso para acceder. Contacta al administrador.' 
+        return {
+          success: false,
+          error: 'Este correo no tiene permiso para acceder. Contacta al administrador.'
         };
       }
-      
+
       return { success: true };
     } catch (error: any) {
       console.error('Error de login con Google:', error);
-      
+
       let errorMessage = 'Error al iniciar sesión con Google';
-      
+
       if (error.code === 'auth/popup-blocked') {
         errorMessage = 'El popup fue bloqueado. Por favor, permite ventanas emergentes para este sitio.';
       } else if (error.code === 'auth/popup-closed-by-user') {
@@ -88,7 +88,7 @@ export function useAuth() {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       return { success: false, error: errorMessage };
     }
   }, []);
@@ -132,7 +132,7 @@ export function useProjects() {
   const addProject = useCallback(async (project: Omit<Project, 'id'>, imageFile?: File) => {
     try {
       let imageUrl = project.imageUrl;
-      
+
       if (imageFile) {
         imageUrl = await uploadImage(imageFile, 'projects');
       }
@@ -141,7 +141,7 @@ export function useProjects() {
         ...project,
         imageUrl,
       });
-      
+
       setProjects(prev => [newProject as Project, ...prev]);
       return true;
     } catch (error) {
@@ -153,7 +153,7 @@ export function useProjects() {
   const updateProject = useCallback(async (id: string, project: Partial<Project>, imageFile?: File) => {
     try {
       let imageUrl = project.imageUrl;
-      
+
       if (imageFile) {
         imageUrl = await uploadImage(imageFile, 'projects');
       }
@@ -162,8 +162,8 @@ export function useProjects() {
         ...project,
         ...(imageUrl && { imageUrl }),
       });
-      
-      setProjects(prev => prev.map(p => 
+
+      setProjects(prev => prev.map(p =>
         p.id === id ? { ...p, ...project, ...(imageUrl && { imageUrl }) } : p
       ));
       return true;
@@ -214,7 +214,7 @@ export function useNews() {
   const addNews = useCallback(async (item: Omit<NewsItem, 'id'>, imageFile?: File) => {
     try {
       let imageUrl = item.imageUrl;
-      
+
       if (imageFile) {
         imageUrl = await uploadImage(imageFile, 'news');
       }
@@ -223,7 +223,7 @@ export function useNews() {
         ...item,
         imageUrl,
       });
-      
+
       setNews(prev => [newItem as NewsItem, ...prev]);
       return true;
     } catch (error) {
@@ -235,7 +235,7 @@ export function useNews() {
   const updateNews = useCallback(async (id: string, item: Partial<NewsItem>, imageFile?: File) => {
     try {
       let imageUrl = item.imageUrl;
-      
+
       if (imageFile) {
         imageUrl = await uploadImage(imageFile, 'news');
       }
@@ -244,8 +244,8 @@ export function useNews() {
         ...item,
         ...(imageUrl && { imageUrl }),
       });
-      
-      setNews(prev => prev.map(n => 
+
+      setNews(prev => prev.map(n =>
         n.id === id ? { ...n, ...item, ...(imageUrl && { imageUrl }) } : n
       ));
       return true;

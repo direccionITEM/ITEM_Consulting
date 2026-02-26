@@ -26,7 +26,7 @@ export default function Contacto() {
     setSubmitError(false);
 
     try {
-      const response = await fetch('https://formspree.io/f/xgoldlbo', {
+      const response = await fetch('https://formspree.io/f/meelnvbj', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ export default function Contacto() {
       }
     } catch {
       setSubmitError(true);
-      setSubmitMessage('Hubo un error al enviar el mensaje. Por favor, inténtalo de nuevo o escríbenos a direccion@itemconsulting.es');
+      setSubmitMessage('Hubo un error al enviar el mensaje. Por favor, inténtalo de nuevo o escríbenos a informacion@itemconsulting.es');
     } finally {
       setIsSubmitting(false);
       setTimeout(() => setSubmitMessage(''), 8000);
@@ -195,10 +195,10 @@ export default function Contacto() {
                     <div>
                       <h4 className="font-semibold text-gray-900 mb-1">Correo electrónico</h4>
                       <a
-                        href="mailto:direccion@itemconsulting.es"
+                        href="mailto:informacion@itemconsulting.es"
                         className="text-item-blue hover:underline"
                       >
-                        direccion@itemconsulting.es
+                        informacion@itemconsulting.es
                       </a>
                     </div>
                   </div>
