@@ -1,49 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://item-consulting.vercel.app</loc>
+    <loc>https://www.itemconsulting.es</loc>
     <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://item-consulting.vercel.app/empresa</loc>
+    <loc>https://www.itemconsulting.es/empresa</loc>
     <lastmod>2026-02-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://item-consulting.vercel.app/estudios-trafico</loc>
+    <loc>https://www.itemconsulting.es/estudios-trafico</loc>
     <lastmod>2026-02-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://item-consulting.vercel.app/consultoria-movilidad</loc>
+    <loc>https://www.itemconsulting.es/consultoria-movilidad</loc>
     <lastmod>2026-02-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://item-consulting.vercel.app/ptt</loc>
+    <loc>https://www.itemconsulting.es/ptt</loc>
     <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://item-consulting.vercel.app/proyectos</loc>
+    <loc>https://www.itemconsulting.es/proyectos</loc>
     <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://item-consulting.vercel.app/noticias</loc>
+    <loc>https://www.itemconsulting.es/noticias</loc>
     <lastmod>2026-02-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://item-consulting.vercel.app/contacto</loc>
+    <loc>https://www.itemconsulting.es/contacto</loc>
     <lastmod>2026-02-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

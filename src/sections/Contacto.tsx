@@ -13,27 +13,43 @@ export default function Contacto() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
+  const [submitError, setSubmitError] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Enviar el formulario usando mailto
-    const subject = encodeURIComponent(formData.subject || 'Contacto desde la web');
-    const body = encodeURIComponent(
-      `Nombre: ${formData.name}\n` +
-      `Email: ${formData.email}\n` +
-      `Asunto: ${formData.subject || 'No especificado'}\n\n` +
-      `Mensaje:\n${formData.message}`
-    );
-    
-    window.location.href = `mailto:direccion@itemconsulting.es?subject=${subject}&body=${body}`;
-    
-    setIsSubmitting(false);
-    setSubmitMessage('¡Mensaje preparado! Se abrirá tu cliente de correo para enviar el mensaje.');
-    setFormData({ name: '', email: '', subject: '', message: '' });
-    
-    setTimeout(() => setSubmitMessage(''), 5000);
+    setSubmitMessage('');
+    setSubmitError(false);
+
+    try {
+      const response = await fetch('https://formspree.io/f/xgoldlbo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject || 'Contacto desde la web',
+          message: formData.message,
+          _subject: `Nuevo mensaje de contacto: ${formData.subject || 'Contacto desde la web'}`,
+        }),
+      });
+
+      if (response.ok) {
+        setSubmitMessage('¡Mensaje enviado correctamente! Nos pondremos en contacto contigo pronto.');
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        throw new Error('Error al enviar');
+      }
+    } catch {
+      setSubmitError(true);
+      setSubmitMessage('Hubo un error al enviar el mensaje. Por favor, inténtalo de nuevo o escríbenos a direccion@itemconsulting.es');
+    } finally {
+      setIsSubmitting(false);
+      setTimeout(() => setSubmitMessage(''), 8000);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -51,7 +67,7 @@ export default function Contacto() {
           <h2 className="text-4xl font-bold text-gray-900 mb-4">Contacto</h2>
           <div className="w-20 h-1 bg-item-blue mx-auto rounded-full mb-6" />
           <p className="text-lg text-gray-700 max-w-2xl mx-auto">
-            Comunícate con nosotros y nos pondremos en contacto contigo tan pronto como nos sea posible. 
+            Comunícate con nosotros y nos pondremos en contacto contigo tan pronto como nos sea posible.
             ¡Esperamos tener noticias tuyas!
           </p>
         </div>
@@ -60,9 +76,9 @@ export default function Contacto() {
           {/* Contact Form */}
           <div className="bg-white rounded-2xl p-8 md:p-10 shadow-sm">
             <h3 className="text-2xl font-bold text-gray-900 mb-6">Envíanos un mensaje</h3>
-            
+
             {submitMessage && (
-              <div className="mb-6 p-4 bg-green-100 text-green-800 rounded-lg">
+              <div className={`mb-6 p-4 rounded-lg ${submitError ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
                 {submitMessage}
               </div>
             )}
@@ -83,7 +99,7 @@ export default function Contacto() {
                   className="w-full"
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                   Email *
@@ -99,7 +115,7 @@ export default function Contacto() {
                   className="w-full"
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
                   Asunto
@@ -114,7 +130,7 @@ export default function Contacto() {
                   className="w-full"
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
                   Mensaje *
@@ -130,7 +146,7 @@ export default function Contacto() {
                   className="w-full"
                 />
               </div>
-              
+
               <Button
                 type="submit"
                 disabled={isSubmitting}
@@ -153,7 +169,7 @@ export default function Contacto() {
             {/* Contact Details */}
             <div className="bg-white rounded-2xl p-8 shadow-sm">
               <h3 className="text-2xl font-bold text-gray-900 mb-6">Información de contacto</h3>
-              
+
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-item-blue-light rounded-lg flex items-center justify-center flex-shrink-0">
@@ -161,7 +177,7 @@ export default function Contacto() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Correo electrónico</h4>
-                    <a 
+                    <a
                       href="mailto:direccion@itemconsulting.es"
                       className="text-item-blue hover:underline"
                     >
@@ -176,7 +192,7 @@ export default function Contacto() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-gray-900 mb-1">Teléfono</h4>
-                    <a 
+                    <a
                       href="tel:+34619620268"
                       className="text-item-blue hover:underline"
                     >

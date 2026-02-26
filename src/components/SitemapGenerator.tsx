@@ -5,9 +5,9 @@ import { useEffect } from 'react';
  * Este componente no renderiza nada, solo genera el sitemap
  */
 export function generateSitemap(projects: { id: string; date?: string }[], news: { id: string; date: string }[]) {
-  const baseUrl = 'https://item-consulting.vercel.app';
+  const baseUrl = 'https://www.itemconsulting.es';
   const today = new Date().toISOString().split('T')[0];
-  
+
   // Rutas estáticas con prioridad y frecuencia de cambio
   const staticRoutes = [
     { path: '', priority: '1.0', changefreq: 'weekly' },
@@ -19,11 +19,11 @@ export function generateSitemap(projects: { id: string; date?: string }[], news:
     { path: '/noticias', priority: '0.7', changefreq: 'daily' },
     { path: '/contacto', priority: '0.8', changefreq: 'monthly' },
   ];
-  
+
   let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 `;
-  
+
   // Rutas estáticas
   staticRoutes.forEach(route => {
     sitemap += `  <url>
@@ -34,7 +34,7 @@ export function generateSitemap(projects: { id: string; date?: string }[], news:
   </url>
 `;
   });
-  
+
   // Proyectos
   projects.forEach(project => {
     sitemap += `  <url>
@@ -45,7 +45,7 @@ export function generateSitemap(projects: { id: string; date?: string }[], news:
   </url>
 `;
   });
-  
+
   // Noticias
   news.forEach(item => {
     sitemap += `  <url>
@@ -56,7 +56,7 @@ export function generateSitemap(projects: { id: string; date?: string }[], news:
   </url>
 `;
   });
-  
+
   sitemap += '</urlset>';
   return sitemap;
 }
@@ -68,11 +68,11 @@ export function useSitemap(projects: { id: string; date?: string }[], news: { id
   useEffect(() => {
     // Generar y guardar sitemap
     const sitemap = generateSitemap(projects, news);
-    
+
     // Crear blob y URL
     const blob = new Blob([sitemap], { type: 'application/xml' });
     const url = URL.createObjectURL(blob);
-    
+
     // Actualizar meta tag para sitemap
     let sitemapLink = document.querySelector('link[rel="sitemap"]') as HTMLLinkElement;
     if (!sitemapLink) {
@@ -82,7 +82,7 @@ export function useSitemap(projects: { id: string; date?: string }[], news: { id
       document.head.appendChild(sitemapLink);
     }
     sitemapLink.href = url;
-    
+
     return () => {
       URL.revokeObjectURL(url);
     };

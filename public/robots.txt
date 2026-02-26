@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://item-consulting.vercel.app/sitemap.xml
+Sitemap: https://www.itemconsulting.es/sitemap.xml
 
 # Crawl-delay
 Crawl-delay: 1

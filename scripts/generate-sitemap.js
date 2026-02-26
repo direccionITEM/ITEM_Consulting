@@ -10,7 +10,7 @@ import { dirname, join } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const baseUrl = 'https://item-consulting.vercel.app';
+const baseUrl = 'https://www.itemconsulting.es';
 const today = new Date().toISOString().split('T')[0];
 
 // Rutas estáticas
