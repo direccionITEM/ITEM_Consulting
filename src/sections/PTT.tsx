@@ -94,8 +94,8 @@ export default function PTT() {
           </h2>
           <div className="w-20 h-1 bg-item-blue mx-auto rounded-full mb-6" />
           <p className="text-lg text-gray-700 max-w-3xl mx-auto">
-            La nueva <strong>Ley 9/2025, de 3 de diciembre, de Movilidad Sostenible</strong> establece 
-            la obligatoriedad de implantar Planes de Movilidad Sostenible al Trabajo para determinados 
+            La nueva <strong>Ley 9/2025, de 3 de diciembre, de Movilidad Sostenible</strong> establece
+            la obligatoriedad de implantar Planes de Movilidad Sostenible al Trabajo para determinados
             centros de trabajo.
           </p>
         </div>
@@ -103,8 +103,8 @@ export default function PTT() {
         {/* Disclaimer */}
         <div className="bg-amber-50 border-l-4 border-amber-400 rounded-r-lg p-4 mb-12">
           <p className="text-amber-800 text-sm">
-            <strong>Nota informativa:</strong> Este contenido tiene carácter divulgativo y no sustituye 
-            al asesoramiento legal especializado. Para información específica sobre su situación, 
+            <strong>Nota informativa:</strong> Este contenido tiene carácter divulgativo y no sustituye
+            al asesoramiento legal especializado. Para información específica sobre su situación,
             consulte con profesionales cualificados.
           </p>
         </div>
@@ -189,8 +189,8 @@ export default function PTT() {
                 ¿Cómo puede ayudarte ITEM Consulting?
               </h3>
               <p className="text-white/90 mb-6 leading-relaxed">
-                En ITEM Consulting acompañamos a las empresas en todo el proceso de elaboración, 
-                implantación y seguimiento del Plan de Transporte al Trabajo, garantizando el 
+                En ITEM Consulting acompañamos a las empresas en todo el proceso de elaboración,
+                implantación y seguimiento del Plan de Transporte al Trabajo, garantizando el
                 cumplimiento de la normativa y maximizando los beneficios de la movilidad sostenible.
               </p>
               <ul className="space-y-3">
@@ -211,9 +211,9 @@ export default function PTT() {
             </div>
             <div className="text-center lg:text-right">
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 inline-block">
-                <p className="text-4xl font-bold mb-2">24</p>
-                <p className="text-white/80">meses de plazo</p>
-                <p className="text-sm text-white/60 mt-2">Hasta el 5 de diciembre de 2027</p>
+                <p className="text-4xl font-bold mb-2">Diciembre  2026</p>
+                <p className="text-white/80">Fecha límite</p>
+                <p className="text-sm text-white/60 mt-2">Hasta diciembre de 2026</p>
               </div>
             </div>
           </div>
