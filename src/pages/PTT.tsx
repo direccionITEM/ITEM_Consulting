@@ -128,7 +128,7 @@ export default function PTT() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <section className="relative bg-item-blue py-20">
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center opacity-20"
           style={{ backgroundImage: `url('/images/bike-3854437_960_720.jpg')` }}
         />
@@ -142,8 +142,8 @@ export default function PTT() {
           </h1>
           <div className="w-20 h-1 bg-white mx-auto rounded-full mb-6" />
           <p className="text-white/90 max-w-3xl mx-auto text-lg">
-            La <strong>Ley de Movilidad Sostenible</strong> establece 
-            la obligatoriedad de implantar Planes de Movilidad Sostenible al Trabajo para determinados 
+            La <strong>Ley de Movilidad Sostenible</strong> establece
+            la obligatoriedad de implantar Planes de Movilidad Sostenible al Trabajo para determinados
             centros de trabajo.
           </p>
         </div>
@@ -151,7 +151,7 @@ export default function PTT() {
 
       {/* Obligaciones */}
       <section className="relative py-16">
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center opacity-10"
           style={{ backgroundImage: `url('/images/6.png')` }}
         />
@@ -176,7 +176,7 @@ export default function PTT() {
 
       {/* Motivaciones - Texto persuasivo */}
       <section className="relative py-16">
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center opacity-5"
           style={{ backgroundImage: `url('/images/bike-1208309_960_720.jpg')` }}
         />
@@ -185,7 +185,7 @@ export default function PTT() {
             <h2 className="text-3xl font-bold text-gray-900 mb-4">¿Por qué implementar un PTT?</h2>
             <div className="w-20 h-1 bg-item-blue mx-auto rounded-full" />
             <p className="text-gray-600 mt-4 max-w-2xl mx-auto">
-              Más allá del cumplimiento normativo, implantar un Plan de Transporte al Trabajo 
+              Más allá del cumplimiento normativo, implantar un Plan de Transporte al Trabajo
               aporta múltiples beneficios a tu empresa y a tus empleados.
             </p>
           </div>
@@ -207,7 +207,7 @@ export default function PTT() {
 
       {/* Medidas */}
       <section className="relative py-16">
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center opacity-10"
           style={{ backgroundImage: `url('/images/9.png')` }}
         />
@@ -240,7 +240,7 @@ export default function PTT() {
 
       {/* Proceso */}
       <section className="relative py-16">
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center opacity-5"
           style={{ backgroundImage: `url('/images/11.png')` }}
         />
@@ -265,7 +265,7 @@ export default function PTT() {
 
       {/* Beneficios */}
       <section className="relative py-16">
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center opacity-10"
           style={{ backgroundImage: `url('/images/13.png')` }}
         />
@@ -292,7 +292,7 @@ export default function PTT() {
 
       {/* EDIM */}
       <section className="relative py-16">
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center opacity-5"
           style={{ backgroundImage: `url('/images/14.png')` }}
         />
@@ -303,8 +303,8 @@ export default function PTT() {
                 Registro en el EDIM
               </h2>
               <p className="text-gray-700 leading-relaxed mb-4">
-                El <strong>EDIM (Espacio de Datos Integrado de Movilidad)</strong> es una plataforma digital 
-                gestionada por el Ministerio de Transportes y Movilidad Sostenible que centraliza todos 
+                El <strong>EDIM (Espacio de Datos Integrado de Movilidad)</strong> es una plataforma digital
+                gestionada por el Ministerio de Transportes y Movilidad Sostenible que centraliza todos
                 los datos relacionados con los planes de movilidad en España.
               </p>
               <p className="text-gray-700 leading-relaxed mb-4">
@@ -325,7 +325,7 @@ export default function PTT() {
                 </li>
               </ul>
               <p className="text-gray-700 leading-relaxed">
-                El registro se realiza a través de la autoridad competente en movilidad (autonómica o local), 
+                El registro se realiza a través de la autoridad competente en movilidad (autonómica o local),
                 que transmitirá la información al sistema estatal.
               </p>
             </div>
@@ -362,8 +362,8 @@ export default function PTT() {
                 ¿Cómo puede ayudarte ITEM Consulting?
               </h2>
               <p className="text-white/90 mb-6 leading-relaxed">
-                En ITEM Consulting acompañamos a las empresas en todo el proceso de elaboración, 
-                implantación y seguimiento del Plan de Transporte al Trabajo, garantizando el 
+                En ITEM Consulting acompañamos a las empresas en todo el proceso de elaboración,
+                implantación y seguimiento del Plan de Transporte al Trabajo, garantizando el
                 cumplimiento de la normativa y maximizando los beneficios de la movilidad sostenible.
               </p>
               <ul className="space-y-3">
@@ -386,8 +386,8 @@ export default function PTT() {
             </div>
             <div className="text-center lg:text-right">
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 inline-block">
-                <div className="text-6xl font-bold text-white mb-2">24</div>
-                <div className="text-white/80 text-lg mb-4">meses de plazo</div>
+                <div className="text-6xl font-bold text-white mb-2">Diciembre 2026</div>
+                <div className="text-white/80 text-lg mb-4">fecha límite</div>
                 <div className="text-white/60 text-sm mb-6">Para elaborar e implantar tu PTT</div>
                 <div className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium">
                   ¡No esperes al último momento!
@@ -405,7 +405,7 @@ export default function PTT() {
             ¿Tu empresa necesita un PTT?
           </h2>
           <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-            Contacta con nosotros y te ayudaremos a diseñar e implantar tu Plan de Transporte 
+            Contacta con nosotros y te ayudaremos a diseñar e implantar tu Plan de Transporte
             al Trabajo, cumpliendo con la normativa y maximizando los beneficios para tu empresa.
           </p>
           <Link
