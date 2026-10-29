@@ -303,7 +303,7 @@ function App() {
               <>
                 <SEO 
                   title="Contacto" 
-                  description="Contacta con ITEM Consulting. Estamos en Murcia y trabajamos en toda España. Teléfono: 619 620 268."
+                  description="Contacta con ITEM Consulting. Estamos en Murcia y trabajamos en toda España."
                   canonical="/contacto"
                 />
                 <Contacto />
